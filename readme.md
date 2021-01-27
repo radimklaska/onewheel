@@ -6,8 +6,8 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 
 ## Help
 
-* If you have time, please help by extending this page: https://github.com/radimklaska/onewheel
-* If you have money, please motivate me to extend this page: https://github.com/sponsors/radimklaska
+* If you have time, please help by extending this page: [https://github.com/radimklaska/onewheel](https://github.com/radimklaska/onewheel)
+* If you have money, please motivate me to extend this page: [https://github.com/sponsors/radimklaska](https://github.com/sponsors/radimklaska)
 
 # +XR Disassembly
 
