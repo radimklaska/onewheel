@@ -9,7 +9,7 @@
 
 Connector (2 pin female mini DIN) pinout:
 
-![](pint.svg)
+![](images/charger_pint.svg)
 
 Voltage measurements across pairs of leads:
 
@@ -32,7 +32,7 @@ Found polarity:
 
 Connector (3 pin female XLR) pinout:
 
-![](xr.svg)
+![](images/charger_xr.svg)
 
 Voltage measurements across pairs of leads:
 
@@ -69,7 +69,7 @@ Wiring:
 
 | Onewheel+ XR | Onewheel+ Pint |
 |--------------|----------------|
-| ![](xr.svg)  | ![](pint.svg)  |
+| ![](images/charger_xr.svg)  | ![](images/charger_pint.svg)  |
 | 1            | 2              |
 | 2            | 1              |
 | 3            |                |
