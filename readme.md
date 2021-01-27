@@ -4,6 +4,24 @@
 
 I'm just trying to aggregate bits of technical details I was able to find published on the internet. (See the credits sections.) This is in no way a tutorial to do anything. I'm not responsible for any damage you cause by using this info. Even though I do my best to verify and double-check I'm not guaranteeing the correctness of the information aggregated in this repo.
 
+# +XR Disassembly
+
+## Open Controller box
+
+[![Onewheel Workbench: Fix LED Light & Secure Ferrite Ring](http://img.youtube.com/vi/-MDYx_yDMhE/0.jpg)](http://www.youtube.com/watch?v=-MDYx_yDMhE "Onewheel Workbench: Fix LED Light & Secure Ferrite Ring")
+
+## Open Battery box
+
+[![How to remove and replace your battery cell pack for Onewheel XR.](http://img.youtube.com/vi/fd1t5vvBbV8/0.jpg)](http://www.youtube.com/watch?v=fd1t5vvBbV8 "How to remove and replace your battery cell pack for Onewheel XR.")
+
+## Bearings change
+
+[![How to change the bearings on a Onewheel with Sean Nelson](http://img.youtube.com/vi/EsT58TsiuLM/0.jpg)](http://www.youtube.com/watch?v=EsT58TsiuLM "How to change the bearings on a Onewheel with Sean Nelson")
+
+## Tire change
+
+[![EASIEST Onewheel XR+ Tire Change - Step by Step w/ Jeff McCosker](http://img.youtube.com/vi/UgWu_pFre-A/0.jpg)](http://www.youtube.com/watch?v=UgWu_pFre-A "EASIEST Onewheel XR+ Tire Change - Step by Step w/ Jeff McCosker")
+
 # OneWheel Battery schema and connector types
 
 ## Overview
@@ -148,3 +166,11 @@ am not responsible for that.
   * Source:
     * OP: [https://imgur.com/a/Sif7Wlo#Axt8gvk](https://imgur.com/a/Sif7Wlo#Axt8gvk)
     * Reference: [https://www.reddit.com/r/onewheel/comments/iutvnf/onewheel_battery_pack_schematics/](https://www.reddit.com/r/onewheel/comments/iutvnf/onewheel_battery_pack_schematics/)
+* [Grind671](https://www.youtube.com/channel/UC5Kx6GOUVHsvjwmENt6gKfg)
+  * Open controller box video
+* [WiTz life](https://www.youtube.com/channel/UCSzTq7j3rbYtSvsfUzVIBWQ)
+  * Open battery box video
+* [eevee's](https://www.youtube.com/channel/UCBLDQfwPv1NBQ1kJKfN3Zbw)
+  * Bearings change video
+* [The Float Life](https://www.youtube.com/channel/UCJDddEUqK26B0soFP23fvmA)
+  * Tire change video
