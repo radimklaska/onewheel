@@ -1,4 +1,10 @@
-# [Onewheel Charger](https://tomashubelbauer.github.io/onewheel-charger)
+# [Onewheel](https://radimklaska.github.io/onewheel/)
+
+## Disclaimer
+
+I'm just trying to aggregate bits of technical details I was able to find published on the internet. (See the credits sections.) This is in no way a tutorial to do anything. I'm not responsible for any damage you cause by using this info. Even though I do my best to verify and double-check I'm not guaranteeing the correctness of the information aggregated in this repo.
+
+# Charger pinout
 
 ## Onewheel Pint Home Charger
 
@@ -58,7 +64,7 @@ The Onewheel+ is not NMC I don't think and the charger specs are
 63 Vdc / 5 A, but I don't know either of these, so I cannot verify
 these numbers.
 
-## Onewheel+ XR to Onewheel Pint Charger Adapter
+# Onewheel+ XR to Onewheel Pint Charger Adapter
 
 Connectors:
 
@@ -76,3 +82,15 @@ Wiring:
 
 If you do this and it wrecks your board, blame yourself, because I
 am not responsible for that.
+
+# Credits
+
+* [TomasHubelbauer](https://github.com/TomasHubelbauer)
+  * [:heart: Sponsor](https://github.com/sponsors/TomasHubelbauer)
+  * Originaly started the repo
+  * Pint and +XR charger info
+* [radimklaska](https://github.com/radimklaska)
+  * [:heart: Sponsor](https://github.com/sponsors/radimklaska)
+  * Further info aggregation
+  * Maintainig the struture, moderation...
+  * Trying to keep everything up to date
