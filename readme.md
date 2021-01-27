@@ -14,7 +14,8 @@ Overview, BMS connector (battery pack side), XT-60 connector, and Pint/XR+ batte
 
 Each pack has 4 10k NTC Thermistors placed in-between cells for temperature monitoring.
 
-Part numbers:
+### Part numbers:
+
 * XR+ cells
   * `Samsung 30Q 18650 3000mAh 15A`
   * https://www.imrbatteries.com/samsung-30q-18650-3000mah-15a-battery/
