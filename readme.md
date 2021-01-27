@@ -1,4 +1,4 @@
-# [Onewheel](https://radimklaska.github.io/onewheel/)
+# [OneWheel technical info](https://radimklaska.github.io/onewheel/)
 
 ## Disclaimer
 
@@ -18,22 +18,22 @@ Each pack has 4 10k NTC Thermistors placed in-between cells for temperature moni
 
 * XR+ cells
   * `Samsung 30Q 18650 3000mAh 15A`
-  * https://www.imrbatteries.com/samsung-30q-18650-3000mah-15a-battery/
+  * [https://www.imrbatteries.com/samsung-30q-18650-3000mah-15a-battery/](https://www.imrbatteries.com/samsung-30q-18650-3000mah-15a-battery/)
 * Pint cells
   * `Sony | Murata VTC5D 18650 2800mAh 25A`
-  * https://www.imrbatteries.com/sony-vtc5d-18650-2600mah-25a-battery/
+  * [https://www.imrbatteries.com/sony-vtc5d-18650-2600mah-25a-battery/](https://www.imrbatteries.com/sony-vtc5d-18650-2600mah-25a-battery/)
 * BMS Connector (PCB Side)
   * `BM26B-ZPDSS-TF(LF)(SN)`
-  * https://www.digikey.com/product-detail/en/jst-sales-america-inc/BM26B-ZPDSS-TF(LF)(SN)/455-2548-6-ND/2472626
+  * [https://www.digikey.com/product-detail/en/jst-sales-america-inc/BM26B-ZPDSS-TF(LF)(SN)/455-2548-6-ND/2472626](https://www.digikey.com/product-detail/en/jst-sales-america-inc/BM26B-ZPDSS-TF(LF)(SN)/455-2548-6-ND/2472626)
 * BMS Connector (Battery Pack)
   * `ZPDR-26V-S`
-  * https://www.digikey.com/product-detail/en/jst-sales-america-inc/ZPDR-26V-S/455-2536-ND/2472569
+  * [https://www.digikey.com/product-detail/en/jst-sales-america-inc/ZPDR-26V-S/455-2536-ND/2472569](https://www.digikey.com/product-detail/en/jst-sales-america-inc/ZPDR-26V-S/455-2536-ND/2472569)
 * BMS Connector Pins
   * `SZPD-002T-P0.3`
-  * https://www.digikey.com/product-detail/en/jst-sales-america-inc/SZPD-002T-P0.3/455-2539-1-ND/2472595
+  * [https://www.digikey.com/product-detail/en/jst-sales-america-inc/SZPD-002T-P0.3/455-2539-1-ND/2472595](https://www.digikey.com/product-detail/en/jst-sales-america-inc/SZPD-002T-P0.3/455-2539-1-ND/2472595)
 * 10k NTC Thermistors
   * `NTCLE413`
-  * https://www.digikey.com/catalog/en/partgroup/ntcle413/11021
+  * [https://www.digikey.com/catalog/en/partgroup/ntcle413/11021](https://www.digikey.com/catalog/en/partgroup/ntcle413/11021)
 
 ## BMS pinout
 
@@ -135,16 +135,16 @@ am not responsible for that.
 # Credits
 
 * [TomasHubelbauer](https://github.com/TomasHubelbauer)
-  * [:heart: Sponsor](https://github.com/sponsors/TomasHubelbauer)
+  * [Sponsor](https://github.com/sponsors/TomasHubelbauer)
   * Originaly started the repo
   * Pint and +XR charger info
 * [radimklaska](https://github.com/radimklaska)
-  * [:heart: Sponsor](https://github.com/sponsors/radimklaska)
+  * [Sponsor](https://github.com/sponsors/radimklaska)
   * Further info aggregation
   * Maintainig the struture, moderation...
   * Trying to keep everything up to date
 * [That-Canadian](https://www.reddit.com/user/That-Canadian)
   * Battery schema, BMS pointous, connector types, cell types
   * Source:
-    * OP: https://imgur.com/a/Sif7Wlo#Axt8gvk
-    * Reference: https://www.reddit.com/r/onewheel/comments/iutvnf/onewheel_battery_pack_schematics/
+    * OP: [https://imgur.com/a/Sif7Wlo#Axt8gvk](https://imgur.com/a/Sif7Wlo#Axt8gvk)
+    * Reference: [https://www.reddit.com/r/onewheel/comments/iutvnf/onewheel_battery_pack_schematics/](https://www.reddit.com/r/onewheel/comments/iutvnf/onewheel_battery_pack_schematics/)
