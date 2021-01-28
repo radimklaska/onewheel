@@ -9,23 +9,29 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * If you have time, please help by extending this page: [https://github.com/radimklaska/onewheel](https://github.com/radimklaska/onewheel)
 * If you have money, please motivate me to extend this page: [https://github.com/sponsors/radimklaska](https://github.com/sponsors/radimklaska)
 
-# +XR Disassembly
+# ICs
 
-## Open Controller box
+## Controller
 
-[![Onewheel Workbench: Fix LED Light & Secure Ferrite Ring](https://img.youtube.com/vi/-MDYx_yDMhE/0.jpg)](https://www.youtube.com/watch?v=-MDYx_yDMhE "Onewheel Workbench: Fix LED Light & Secure Ferrite Ring")
+#### r2.9 (+XR, HW: 4209)
 
-## Open Battery box
+* `STM32F103VBT6` main IC
+  * this is the brain of the controller
+  * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
 
-[![How to remove and replace your battery cell pack for Onewheel XR.](https://img.youtube.com/vi/fd1t5vvBbV8/0.jpg)](https://www.youtube.com/watch?v=fd1t5vvBbV8 "How to remove and replace your battery cell pack for Onewheel XR.")
+## BMS
 
-## Bearings change
+#### v2.0.5 (+XR, HW: 4209)
 
-[![How to change the bearings on a Onewheel with Sean Nelson](https://img.youtube.com/vi/EsT58TsiuLM/0.jpg)](https://www.youtube.com/watch?v=EsT58TsiuLM "How to change the bearings on a Onewheel with Sean Nelson")
-
-## Tire change
-
-[![EASIEST Onewheel XR+ Tire Change - Step by Step w/ Jeff McCosker](https://img.youtube.com/vi/UgWu_pFre-A/0.jpg)](https://www.youtube.com/watch?v=UgWu_pFre-A "EASIEST Onewheel XR+ Tire Change - Step by Step w/ Jeff McCosker")
+* `MAX14921` battery measurement analog front-end
+  * controlled by an SPI interface
+  * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
+* `16F1788-I/ML` RISC CPU
+  * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
+  * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
+  * further reading: [https://www.instructables.com/Programming-PIC-Microcontrollers/](https://www.instructables.com/Programming-PIC-Microcontrollers/)
+  * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
+    * onewheelrider.eu offers this firmware adjustment: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
 
 # OneWheel Battery schema and connector types
 
@@ -57,18 +63,6 @@ Each pack has 4 10k NTC Thermistors placed in-between cells for temperature moni
 * 10k NTC Thermistors
   * `NTCLE413`
   * [https://www.digikey.com/catalog/en/partgroup/ntcle413/11021](https://www.digikey.com/catalog/en/partgroup/ntcle413/11021)
-
-### BMS ICs
-
-#### v2.0.5
-
-* MAX14921 battery measurement analog front-end
-  * controlled by an SPI interface
-  * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
-* there is another IC that that sits in between the MAX14921's SPI interface and exposed contacts on the PCB
-  * those contacts look suspiciously like `Rx`, `Tx`, `NC`, `+`, `-`. (not sure about the exact pinout)
-  * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
-    * onewheelrider.eu offers this firmware adjustment: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
 
 ## BMS pinout
 
@@ -167,6 +161,24 @@ Wiring:
 If you do this and it wrecks your board, blame yourself, because I
 am not responsible for that.
 
+# +XR Disassembly
+
+## Open Controller box
+
+[![Onewheel Workbench: Fix LED Light & Secure Ferrite Ring](https://img.youtube.com/vi/-MDYx_yDMhE/0.jpg)](https://www.youtube.com/watch?v=-MDYx_yDMhE "Onewheel Workbench: Fix LED Light & Secure Ferrite Ring")
+
+## Open Battery box
+
+[![How to remove and replace your battery cell pack for Onewheel XR.](https://img.youtube.com/vi/fd1t5vvBbV8/0.jpg)](https://www.youtube.com/watch?v=fd1t5vvBbV8 "How to remove and replace your battery cell pack for Onewheel XR.")
+
+## Bearings change
+
+[![How to change the bearings on a Onewheel with Sean Nelson](https://img.youtube.com/vi/EsT58TsiuLM/0.jpg)](https://www.youtube.com/watch?v=EsT58TsiuLM "How to change the bearings on a Onewheel with Sean Nelson")
+
+## Tire change
+
+[![EASIEST Onewheel XR+ Tire Change - Step by Step w/ Jeff McCosker](https://img.youtube.com/vi/UgWu_pFre-A/0.jpg)](https://www.youtube.com/watch?v=UgWu_pFre-A "EASIEST Onewheel XR+ Tire Change - Step by Step w/ Jeff McCosker")
+
 # Credits
 
 * [TomasHubelbauer](https://github.com/TomasHubelbauer)
@@ -178,7 +190,7 @@ am not responsible for that.
   * Further info aggregation
   * Maintainig the struture, moderation...
   * Trying to keep everything up to date
-  * BMS ICs info
+  * ICs info (BMS and Controller)
 * [That-Canadian](https://www.reddit.com/user/That-Canadian)
   * Battery schema, BMS pointous, connector types, cell types
   * Source:
