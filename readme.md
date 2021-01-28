@@ -30,12 +30,29 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * `MAX14921` battery measurement analog front-end
   * controlled by an SPI interface
   * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
-* `16F1788-I/ML` RISC CPU
+* `PIC16F1788-I/ML` RISC CPU
   * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
   * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
   * further reading: [https://www.instructables.com/Programming-PIC-Microcontrollers/](https://www.instructables.com/Programming-PIC-Microcontrollers/)
   * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
     * onewheelrider.eu offers this firmware adjustment: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
+
+## Hardware version and PCB revision combinations
+
+Note: This is based on very small sample size. (Currently about 10 boards.)
+
+### +XR
+
+| Hardware version | BMS PCB revision | Controller PCB revision |
+|------------------|------------------|-------------------------|
+| 4209             | v2.0.4 - v2.0.5  | r2.9                    |
+| 4210             | v2.0.7           | ?                       |
+
+### Pint
+
+| Hardware version | BMS PCB revision | Controller PCB revision |
+|------------------|------------------|-------------------------|
+| 5300             | v2.0.7           | r3.1.3                  |
 
 # OneWheel Battery schema and connector types
 
