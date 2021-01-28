@@ -18,7 +18,7 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * `STM32F103VBT6` main CPU
   * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
 
-#### Pint, HW: 5300, PCB r?
+#### Pint, HW: 5300, PCB r3.1.3
 
 * `STM32F103R8T6` main CPU
   * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
