@@ -13,15 +13,19 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 
 ## Controller
 
-#### r2.9 (+XR, HW: 4209)
+#### +XR, HW: 4209, PCB r2.9
 
-* `STM32F103VBT6` main IC
-  * this is the brain of the controller
+* `STM32F103VBT6` main CPU
+  * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
+
+#### Pint, HW: 5300, PCB r?
+
+* `STM32F103R8T6` main CPU
   * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
 
 ## BMS
 
-#### v2.0.5 (+XR, HW: 4209)
+#### +XR, HW: 4209, PCB v2.0.5
 
 * `MAX14921` battery measurement analog front-end
   * controlled by an SPI interface
