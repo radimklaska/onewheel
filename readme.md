@@ -58,6 +58,18 @@ Each pack has 4 10k NTC Thermistors placed in-between cells for temperature moni
   * `NTCLE413`
   * [https://www.digikey.com/catalog/en/partgroup/ntcle413/11021](https://www.digikey.com/catalog/en/partgroup/ntcle413/11021)
 
+### BMS ICs
+
+#### v2.0.5
+
+* MAX14921 battery measurement analog front-end
+  * controlled by an SPI interface
+  * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
+* there is another IC that that sits in between the MAX14921's SPI interface and exposed contacts on the PCB
+  * those contacts look suspiciously like `Rx`, `Tx`, `NC`, `+`, `-`. (not sure about the exact pinout)
+  * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
+    * onewheelrider.eu offers this firmware adjustment: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
+
 ## BMS pinout
 
 Close-up of the BMS connector pinout and the XT-60 connector
@@ -166,6 +178,7 @@ am not responsible for that.
   * Further info aggregation
   * Maintainig the struture, moderation...
   * Trying to keep everything up to date
+  * BMS ICs info
 * [That-Canadian](https://www.reddit.com/user/That-Canadian)
   * Battery schema, BMS pointous, connector types, cell types
   * Source:
