@@ -33,9 +33,14 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * `PIC16F1788-I/ML` RISC CPU
   * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
   * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
-  * further reading: [https://www.instructables.com/Programming-PIC-Microcontrollers/](https://www.instructables.com/Programming-PIC-Microcontrollers/)
-  * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
-    * onewheelrider.eu offers this firmware adjustment: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
+  * Current ToDo:
+    * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
+      * onewheelrider.eu offers this firmware adjustment as a service: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
+    * This IC should be programmable using
+      * PICkit3 programmer [https://www.microchip.com/Developmenttools/ProductDetails/PG164130](https://www.microchip.com/Developmenttools/ProductDetails/PG164130)
+        * basic pinout: [https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf](https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf)
+        * manual: [http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf](http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf)
+      * MPLAB IDE [https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide)
 
 ## Hardware version and PCB revision combinations
 
