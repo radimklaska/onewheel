@@ -41,6 +41,10 @@ I'm just trying to aggregate bits of technical details I was able to find publis
         * basic pinout: [https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf](https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf)
         * manual: [http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf](http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf)
       * MPLAB IDE [https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide)
+* `SN65HVD1786` RS-485 Transceiver (IC5 Marking)
+  * Datasheet: [sn65hvd1786.pdf](assets/sn65hvd1786.pdf)
+  * Connected to UART on PIC16
+  * Differential Pair connected to 6-Pin Connecter
 
 ## Hardware version and PCB revision combinations
 
