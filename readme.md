@@ -27,6 +27,8 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 
 #### +XR, HW: 4209, PCB v2.0.5
 
+![](images/bms_xr_2.0.5.jpg)
+
 * `MAX14921` battery measurement analog front-end
   * controlled by an SPI interface
   * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
