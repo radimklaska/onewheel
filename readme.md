@@ -49,6 +49,10 @@ I'm just trying to aggregate bits of technical details I was able to find publis
   * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
   * ![](images/bms_xr_2.0.5_020n08N5.jpg)
 
+* `LM393-N` voltage comparator
+  * Datasheet: [lm393-n.pdf](assets/lm393-n.pdf)
+  * ![](images/bms_xr_2.0.5_lm393.jpg)
+
 ## Hardware version and PCB revision combinations
 
 Note: This is based on very small sample size. (Currently about 10 boards.)
