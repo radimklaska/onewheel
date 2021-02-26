@@ -45,14 +45,15 @@ I'm just trying to aggregate bits of technical details I was able to find publis
         * basic pinout: [https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf](https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf)
         * manual: [http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf](http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf)
       * MPLAB IDE [https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide)
-* `020n08N5` MOSFET
+* `020N08N5` MOSFET
   * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
-  * ![](images/bms_xr_2.0.5_020n08N5.jpg)
-
+  * ![](images/bms_xr_2.0.5_020n08n5.jpg)
+* `CSD19536KTT` power MOSFET
+  * Datasheet: [csd19536ktt.pdf](assets/csd19536ktt.pdf)
+  * ![](images/bms_xr_2.0.5_csd19536ktt.jpg)
 * `LM393-N` voltage comparator
   * Datasheet: [lm393-n.pdf](assets/lm393-n.pdf)
   * ![](images/bms_xr_2.0.5_lm393.jpg)
-
 * `VP1786` (`SN65HVD1786D`) transceiver
   * Datasheet: [sn65hvd1791.pdf](assets/sn65hvd1791.pdf)
   * ![](images/bms_xr_2.0.5_vp1786.jpg)
