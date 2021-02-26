@@ -53,6 +53,10 @@ I'm just trying to aggregate bits of technical details I was able to find publis
   * Datasheet: [lm393-n.pdf](assets/lm393-n.pdf)
   * ![](images/bms_xr_2.0.5_lm393.jpg)
 
+* `VP1786` (`SN65HVD1786D`) transceiver
+  * Datasheet: [sn65hvd1791.pdf](assets/sn65hvd1791.pdf)
+  * ![](images/bms_xr_2.0.5_vp1786.jpg)
+
 ## Hardware version and PCB revision combinations
 
 Note: This is based on very small sample size. (Currently about 10 boards.)
