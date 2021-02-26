@@ -45,6 +45,9 @@ I'm just trying to aggregate bits of technical details I was able to find publis
         * basic pinout: [https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf](https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf)
         * manual: [http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf](http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf)
       * MPLAB IDE [https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide)
+* `020n08N5` MOSFET
+  * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
+  * ![](images/bms_xr_2.0.5_020n08N5.jpg)
 
 ## Hardware version and PCB revision combinations
 
