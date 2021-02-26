@@ -32,6 +32,7 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * `MAX14921` battery measurement analog front-end
   * controlled by an SPI interface
   * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
+  * ![](images/bms_xr_2.0.5_max14921.jpg)
 * `PIC16F1788-I/ML` RISC CPU
   * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
   * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
