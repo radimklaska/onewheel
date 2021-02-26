@@ -57,6 +57,9 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * `VP1786` (`SN65HVD1786D`) transceiver
   * Datasheet: [sn65hvd1791.pdf](assets/sn65hvd1791.pdf)
   * ![](images/bms_xr_2.0.5_vp1786.jpg)
+* `3920R 1L00 1% 1846` current sense resistor
+  * Datasheet: [2629492.pdf](assets/2629492.pdf)
+  * ![](images/bms_xr_2.0.5_3920r.jpg)
 
 ## Hardware version and PCB revision combinations
 
