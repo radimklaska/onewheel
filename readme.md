@@ -36,6 +36,7 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 * `PIC16F1788-I/ML` RISC CPU
   * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
   * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
+  * ![](images/bms_xr_2.0.5_16f1788.jpg)
   * Current ToDo:
     * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
       * onewheelrider.eu offers this firmware adjustment as a service: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
