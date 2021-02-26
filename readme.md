@@ -29,14 +29,12 @@ I'm just trying to aggregate bits of technical details I was able to find publis
 
 ![](images/bms_xr_2.0.5.jpg)
 
-* `MAX14921` battery measurement analog front-end
-  * controlled by an SPI interface
-  * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
-  * ![](images/bms_xr_2.0.5_max14921.jpg)
 * `PIC16F1788-I/ML` RISC CPU
   * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
   * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
   * ![](images/bms_xr_2.0.5_16f1788.jpg)
+  * This seems to be the `PROG1` pinout:
+    * ![](images/bms_xr_2.0.5_PROG1.png)
   * Current ToDo:
     * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
       * onewheelrider.eu offers this firmware adjustment as a service: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
@@ -45,6 +43,10 @@ I'm just trying to aggregate bits of technical details I was able to find publis
         * basic pinout: [https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf](https://ww1.microchip.com/downloads/en/DeviceDoc/50002010B.pdf)
         * manual: [http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf](http://ww1.microchip.com/downloads/en/DeviceDoc/51795B.pdf)
       * MPLAB IDE [https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide)
+* `MAX14921` battery measurement analog front-end
+  * controlled by an SPI interface
+  * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
+  * ![](images/bms_xr_2.0.5_max14921.jpg)
 * `020N08N5` MOSFET
   * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
   * ![](images/bms_xr_2.0.5_020n08n5.jpg)
