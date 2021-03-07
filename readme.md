@@ -79,6 +79,7 @@ Note: This is based on very small sample size. (Currently about 10 boards.)
 | Hardware version | BMS PCB revision | Controller PCB revision |
 |------------------|------------------|-------------------------|
 | 5300             | v2.0.7           | r3.1.3                  |
+| 5314             | v2.0.7           | ?                       |
 
 # OneWheel Battery schema and connector types
 
