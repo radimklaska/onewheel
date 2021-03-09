@@ -4,10 +4,11 @@ email: radim@klaska.net
 description: >
   Deep dive into OneWheel internals
 remote_theme: chrisrhymes/bulma-clean-theme
-baseurl: "/onewheel-test"
+baseurl: "/onewheel"
 url: "https://radimklaska.github.io"
 permalink: pretty
 google_analytics: G-TW57BHBR4D
 gh_sponsor: radimklaska
 markdown: kramdown
 highlighter: rouge
+fixed_navbar: top

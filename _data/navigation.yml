@@ -1,2 +1,16 @@
-- name: Let the BMS burn!
-  link: /page-bms/
+- name: XR
+  link: /info-xr/
+- name: Pint
+  link: /info-pint/
+- name: Part numbers
+  link: /partnumbers/
+- name: Charger
+  link: /info-charger/
+- name: BMS
+  link: /bms/
+- name: BMS Firmware
+  link: /bms-firmware/
+- name: How to
+  link: /howto/
+- name: Credits
+  link: /credits/
