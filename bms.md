@@ -12,33 +12,30 @@ show_sidebar: false
 ![](images/bms_xr_2.0.5.jpg)
 
 * `PIC16F1788-I/ML` RISC CPU
-    * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
-    * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
-    * ![](images/bms_xr_2.0.5_16f1788.jpg)
-    * This seems to be the `PROG1` pinout:
-        * ![](images/bms_xr_2.0.5_PROG1.png)
-    * Current ToDo:
-        * I think this is the IC that communicates with the controller and can be flashed to fix battery procentage in app when bigger battery is installed
-            * onewheelrider.eu offers this firmware adjustment as a service: [https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148](https://onewheelrider.eu/en_US/p/CBXR-or-XXR-BATTERY-APPLICATION-ADJUSTMENT/148)
+  * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
+  * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
+  * ![](images/bms_xr_2.0.5_16f1788.jpg)
+* `PROG1` pinout:
+  * ![](images/bms_xr_2.0.5_PROG1.png)  
 * `MAX14921` battery measurement analog front-end
-    * controlled by an SPI interface
-    * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
-    * ![](images/bms_xr_2.0.5_max14921.jpg)
+  * controlled by an SPI interface
+  * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
+  * ![](images/bms_xr_2.0.5_max14921.jpg)
 * `020N08N5` MOSFET
-    * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
-    * ![](images/bms_xr_2.0.5_020n08n5.jpg)
+  * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
+  * ![](images/bms_xr_2.0.5_020n08n5.jpg)
 * `CSD19536KTT` power MOSFET
-    * Datasheet: [csd19536ktt.pdf](assets/csd19536ktt.pdf)
-    * ![](images/bms_xr_2.0.5_csd19536ktt.jpg)
+  * Datasheet: [csd19536ktt.pdf](assets/csd19536ktt.pdf)
+  * ![](images/bms_xr_2.0.5_csd19536ktt.jpg)
 * `LM393-N` voltage comparator
-    * Datasheet: [lm393-n.pdf](assets/lm393-n.pdf)
-    * ![](images/bms_xr_2.0.5_lm393.jpg)
+  * Datasheet: [lm393-n.pdf](assets/lm393-n.pdf)
+  * ![](images/bms_xr_2.0.5_lm393.jpg)
 * `VP1786` (`SN65HVD1786D`) transceiver
-    * Datasheet: [sn65hvd1791.pdf](assets/sn65hvd1791.pdf)
-    * ![](images/bms_xr_2.0.5_vp1786.jpg)
+  * Datasheet: [sn65hvd1791.pdf](assets/sn65hvd1791.pdf)
+  * ![](images/bms_xr_2.0.5_vp1786.jpg)
 * `3920R 1L00 1% 1846` current sense resistor
-    * Datasheet: [2629492.pdf](assets/2629492.pdf)
-    * ![](images/bms_xr_2.0.5_3920r.jpg)
+  * Datasheet: [2629492.pdf](assets/2629492.pdf)
+  * ![](images/bms_xr_2.0.5_3920r.jpg)
 
 ## Hardware version and PCB revision combinations
 
@@ -63,7 +60,5 @@ Note: This is based on very small sample size. (Currently about 10 boards.)
 Close-up of the BMS connector pinout and the XT-60 connector
 
 ![](images/bms_pinout.png)
-
-
 
 Each pack has 4 10k NTC Thermistors placed in-between cells for temperature monitoring.
