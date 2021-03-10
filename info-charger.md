@@ -10,9 +10,8 @@ show_sidebar: false
 ## OneWheel Pint Home Charger
 
 63 V NMC battery charger
-
-- Input: 100-240 Vac, 50/60 Hz, 1 A, 100 VA
-- Output: 63 Vdc, 1.3 A
+* Input: 100-240 Vac, 50/60 Hz, 1 A, 100 VA
+* Output: 63 Vdc, 1.3 A
 
 Connector (2 pin female mini DIN) pinout:
 
@@ -33,9 +32,8 @@ Found polarity:
 ## Onewheel+ XR Home Charger
 
 63 V NMC battery charger
-
-- Input: 100-240 Vac, 50/60 Hz, 300 VA
-- Output: 63 Vdc, 3 A
+* Input: 100-240 Vac, 50/60 Hz, 300 VA
+* Output: 63 Vdc, 3 A
 
 Connector (3 pin female XLR) pinout:
 
@@ -68,9 +66,8 @@ these numbers.
 # Onewheel+ XR to Onewheel Pint Charger Adapter
 
 Connectors:
-
-- 3pin female XLR
-- 2pin female mini DIN
+* 3pin female XLR
+* 2pin female mini DIN
 
 Wiring:
 

@@ -12,7 +12,7 @@ show_sidebar: false
 ### +XR, HW: 4209, PCB r2.9
 
 * `STM32F103VBT6` main CPU
-    * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
+  * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
 
 # +XR battery schema
 

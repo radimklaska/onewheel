@@ -12,7 +12,7 @@ show_sidebar: false
 ### Pint, HW: 5300, PCB r3.1.3
 
 * `STM32F103R8T6` main CPU
-    * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
+  * Datasheet: [stm32f103c8.pdf](assets/stm32f103c8.pdf)
 
 # Pint battery schema
 
