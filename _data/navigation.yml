@@ -10,6 +10,8 @@
   link: /bms/
 - name: BMS Firmware
   link: /bms-firmware/
+- name: Projects
+  link: /projects/
 - name: How to
   link: /howto/
 - name: Credits
