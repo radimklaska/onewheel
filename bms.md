@@ -22,7 +22,8 @@ show_sidebar: false
   * Datasheet: [MAX14920-MAX14921.pdf](assets/MAX14920-MAX14921.pdf)
   * ![](images/bms_xr_2.0.5_max14921.jpg)
 * `020N08N5` MOSFET
-  * Datasheet: [Infineon-IPP020N08N5-DS-v02_01-en.pdf](assets/Infineon-IPP020N08N5-DS-v02_01-en.pdf)
+  * Datasheet: [Infineon-IPB020N08N5-DS-v02_02-EN.pdf](assets/Infineon-IPB020N08N5-DS-v02_02-EN.pdf)
+  * [https://www.digikey.com/en/products/detail/infineon-technologies/IPB020N08N5ATMA1/5960189](https://www.digikey.com/en/products/detail/infineon-technologies/IPB020N08N5ATMA1/5960189)
   * ![](images/bms_xr_2.0.5_020n08n5.jpg)
 * `CSD19536KTT` power MOSFET
   * Datasheet: [csd19536ktt.pdf](assets/csd19536ktt.pdf)
