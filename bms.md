@@ -14,6 +14,7 @@ show_sidebar: false
 * `PIC16F1788-I/ML` RISC CPU
   * Datasheet: [40001675C.pdf](assets/40001675C.pdf)
   * this one sits in between the `MAX14921`'s SPI interface and exposed contacts on the PCB
+  * [https://www.digikey.com/products/en?KeyWords=PIC16F1788-I/ML](https://www.digikey.com/products/en?KeyWords=PIC16F1788-I/ML)
   * ![](images/bms_xr_2.0.5_16f1788.jpg)
 * `PROG1` pinout:
   * ![](images/bms_xr_2.0.5_PROG1.png)  
@@ -27,6 +28,7 @@ show_sidebar: false
   * ![](images/bms_xr_2.0.5_020n08n5.jpg)
 * `CSD19536KTT` power MOSFET
   * Datasheet: [csd19536ktt.pdf](assets/csd19536ktt.pdf)
+  * [https://www.digikey.com/en/products/detail/texas-instruments/CSD19536KTT/5215835](https://www.digikey.com/en/products/detail/texas-instruments/CSD19536KTT/5215835)
   * ![](images/bms_xr_2.0.5_csd19536ktt.jpg)
 * `LM393-N` voltage comparator
   * Datasheet: [lm393-n.pdf](assets/lm393-n.pdf)
