@@ -1,0 +1,13 @@
+{
+  "name": "onewheel-site-tests",
+  "private": true,
+  "description": "Visual regression tests comparing a PR's Netlify deploy preview against production.",
+  "scripts": {
+    "test:visual": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0"
+  }
+}
