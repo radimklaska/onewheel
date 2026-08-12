@@ -7,7 +7,6 @@ show_sidebar: false
 
 # XR+ cells
 * `Samsung 30Q 18650 3000mAh 15A`
-* Capacity and discharge test: [https://lygte-info.dk/review/batteries2012/Samsung INR18650-30Q 3000mAh (Pink) UK.html](https://lygte-info.dk/review/batteries2012/Samsung%20INR18650-30Q%203000mAh%20(Pink)%20UK.html)
 
 # Pint cells
 * `Sony | Murata VTC5D 18650 2800mAh 25A`
