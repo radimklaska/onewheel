@@ -40,14 +40,40 @@ As for software, you will need **MPLAB IPE**
 
 # Expectations / Limitations
 
-Note: Most of this is just a theory for me.
+**What matters is the combination of hardware revision _and_ firmware version.** The
+hardware revision alone does not decide whether a battery upgrade will work — a `4210`
+board behaves very differently on `Gemini - 4144` than on `Gemini - 4165`.
+
+Find both in the official app under `Diagnostics`. Hardware revisions are `42xx`;
+XR firmware is styled `Gemini - 41xx`. They are easy to mix up.
+
+## By hardware revision
 
 |Relevant revisions|Expectation/Limitation|Note|
 |---|---|---|
-|4209 and older|Percentage fix for boards with upgraded battery is possible by altering BMS firmware.|On my ToDo list.|
-|4210|Hit or miss for battery upgrades. Some issues reported with 4210 / Gemini 4150. Read more on the website of your battery supplier.||
-|4211|No more battery upgrades.|(No bigger capacity, you can still replace the battery with one of the same capacity.)|
-|4212|`Code Protection` enabled on the PIC on BMS. = No firmware downloads. Controller <-> BMS pairing starts here.|If the pcb is still the same, it should be possible to replace the chip and program it with older fw. It may not be paired any more, but it should work with older boards at least.|
+|4206 - 4209|No controller <-> BMS pairing. Battery upgrades work without a chip.||
+|4210|**Controller <-> BMS pairing starts here.** Battery upgrades still possible on `Gemini - 4144` and older; a JWFFM or Owie chip is needed otherwise.|From `4210` the update process also pulls a **bootloader**, not just the firmware file.|
+|4211|Paired. Battery upgrades need a chip.||
+|4212|Paired. `Code Protection` enabled on the PIC on the BMS = no firmware downloads.|If the PCB is still the same, it should be possible to replace the chip and program it with older fw. It may not be paired any more, but it should work with older boards at least. Downgrading firmware on `4212` has been reported to leave boards unbootable.|
+|4213|Paired. Same expectations as `4212`.|Not confirmed whether the `4212` downgrade limitation applies here.|
+
+## By firmware version
+
+|Firmware|Expectation/Limitation|Note|
+|---|---|---|
+|`Gemini - 4144` and older|Battery upgrades work. On `4210` hardware no chip is needed.|`4134` is the common shipping firmware for `4206` - `4209`.|
+|`Gemini - 4150` - `4162`|Battery upgrades need a JWFFM or Owie chip.||
+|`Gemini - 4165`|**Battery upgrades are not possible - a chip does not help.**|This is the haptic buzz firmware from the CPSC recall. The same file is used for every board; `4210` and newer also pull a new bootloader.|
+
+There is also an authentication change at **`Gemini - 4141`**: older firmware uses a
+challenge/response handshake, newer firmware uses serial-based authentication. Some
+community tools support only one or the other.
 
 General limitations of working with BMS firmware:
 * Most likely no bigger battery "unlocks" for `4210` or newer with BMS alterations.
+* A used board that a previous owner updated to `Gemini - 4165` has lost the ability to
+  take a bigger battery.
+
+Note: much of the above is aggregated from repair shops and the community rather than
+from Future Motion, and some of it is still theory for me. Corrections welcome - see
+[Credits]({{ site.baseurl }}/credits/).
