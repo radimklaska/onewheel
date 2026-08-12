@@ -34,21 +34,26 @@ jobs:
           mkdir -p _linkcheck/onewheel
           cp -r _site/. _linkcheck/onewheel/
 
-      # Exclusions are sites that block or rate-limit automated requests and therefore
-      # produce false positives, not links known to be broken.
+      # --remap: the generated feed.xml and robots.txt reference the production host
+      #   absolutely. Resolved as-is they would test the currently deployed site
+      #   rather than the build under test, so any PR adding a page would fail
+      #   because that page is not live yet. Remapping points them at the build.
+      #
+      # --exclude: only these two, and only because each was verified by hand to
+      #   return 403 to any automated client (including with a browser user-agent)
+      #   while working normally in a browser. Everything else the site links to -
+      #   including mouser, reddit, instagram and facebook - passes unaided and is
+      #   deliberately left checked. Add a domain here only after confirming the
+      #   failure is bot-blocking rather than a genuinely broken link.
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
           args: >-
             --no-progress
             --root-dir ${{ github.workspace }}/_linkcheck
-            --exclude amazon\.com
+            --remap "https://klaska.net/onewheel/ file://${{ github.workspace }}/_linkcheck/onewheel/"
             --exclude digikey\.com
-            --exclude mouser\.com
-            --exclude reddit\.com
-            --exclude instagram\.com
-            --exclude facebook\.com
-            --exclude linkedin\.com
+            --exclude microchip\.com
             _linkcheck/
           fail: true
 

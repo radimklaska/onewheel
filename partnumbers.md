@@ -7,11 +7,10 @@ show_sidebar: false
 
 # XR+ cells
 * `Samsung 30Q 18650 3000mAh 15A`
-* [https://www.imrbatteries.com/samsung-30q-18650-3000mah-15a-battery/](https://www.imrbatteries.com/samsung-30q-18650-3000mah-15a-battery/)
+* Capacity and discharge test: [https://lygte-info.dk/review/batteries2012/Samsung INR18650-30Q 3000mAh (Pink) UK.html](https://lygte-info.dk/review/batteries2012/Samsung%20INR18650-30Q%203000mAh%20(Pink)%20UK.html)
 
 # Pint cells
 * `Sony | Murata VTC5D 18650 2800mAh 25A`
-* [https://www.imrbatteries.com/sony-vtc5d-18650-2600mah-25a-battery/](https://www.imrbatteries.com/sony-vtc5d-18650-2600mah-25a-battery/)
 
 # BMS Connector (PCB Side)
 * `BM26B-ZPDSS-TF(LF)(SN)`
