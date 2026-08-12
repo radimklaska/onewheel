@@ -39,12 +39,19 @@ jobs:
       #   rather than the build under test, so any PR adding a page would fail
       #   because that page is not live yet. Remapping points them at the build.
       #
-      # --exclude: only these two, and only because each was verified by hand to
-      #   return 403 to any automated client (including with a browser user-agent)
-      #   while working normally in a browser. Everything else the site links to -
-      #   including mouser, reddit, instagram and facebook - passes unaided and is
-      #   deliberately left checked. Add a domain here only after confirming the
-      #   failure is bot-blocking rather than a genuinely broken link.
+      # --exclude: each of these was confirmed to be blocked rather than broken, and
+      #   the two groups fail for different reasons:
+      #
+      #   digikey.com, microchip.com - 403 to any automated client, including with a
+      #     browser user-agent, from any network.
+      #   reddit.com, instagram.com - reachable from a normal connection but 403/429
+      #     from GitHub's runner IPs, which are datacentre ranges these sites
+      #     rate-limit. They pass when the checker is run locally, so a local run is
+      #     not sufficient evidence that a domain is fine in CI.
+      #
+      #   Everything else, including mouser and facebook, passes from CI and stays
+      #   checked. Add a domain here only after confirming from a CI run that the
+      #   failure is blocking rather than a genuinely broken link.
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
@@ -54,6 +61,8 @@ jobs:
             --remap "https://klaska.net/onewheel/ file://${{ github.workspace }}/_linkcheck/onewheel/"
             --exclude digikey\.com
             --exclude microchip\.com
+            --exclude reddit\.com
+            --exclude instagram\.com
             _linkcheck/
           fail: true
 
