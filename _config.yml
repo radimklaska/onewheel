@@ -12,9 +12,11 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-sitemap
-  - jekyll-paginate
 baseurl: "/onewheel"
-url: "https://radimklaska.github.io"
+# The site is served from the klaska.net custom domain;
+# radimklaska.github.io/onewheel/ redirects here. `url` must name the
+# canonical host or every canonical tag points at the redirecting one.
+url: "https://klaska.net"
 permalink: pretty
 google_analytics: G-TW57BHBR4D
 gh_sponsor: radimklaska
