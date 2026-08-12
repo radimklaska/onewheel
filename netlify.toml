@@ -1,0 +1,22 @@
+# Netlify builds deploy previews for pull requests. The production site is served
+# from GitHub Pages at klaska.net/onewheel — Netlify is here for previews only.
+
+[build]
+  publish = "_site"
+  command = "bundle exec jekyll build"
+
+[build.environment]
+  # Netlify also reads .ruby-version, but pinning here keeps the build image's
+  # Ruby explicit and independent of image defaults.
+  RUBY_VERSION = "3.3.6"
+  JEKYLL_ENV = "production"
+
+# Deploy previews and branch deploys are served from the ROOT of a
+# *.netlify.app host, not from /onewheel. The production baseurl would make
+# every link, image and stylesheet resolve to /onewheel/... — a preview where
+# nothing loads. Build these contexts with an empty baseurl instead.
+[context.deploy-preview]
+  command = "bundle exec jekyll build --baseurl ''"
+
+[context.branch-deploy]
+  command = "bundle exec jekyll build --baseurl ''"

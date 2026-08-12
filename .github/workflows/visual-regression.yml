@@ -1,0 +1,114 @@
+name: Visual regression
+
+# Runs ONLY when the toolchain changes - dependencies, site config, layout includes,
+# navigation data, or the workflows themselves. Deliberately not on content changes:
+# editing a page is *supposed* to change how it looks, so a diff against production
+# would be noise. When only the toolchain moves, the rendered pages should be
+# pixel-identical, and anything that is not is worth a human looking at.
+on:
+  pull_request:
+    branches: ["master"]
+    paths:
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - '.ruby-version'
+      - '_config.yml'
+      - '_data/**'
+      - '_includes/**'
+      - '_layouts/**'
+      - 'netlify.toml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'playwright.config.js'
+      - 'tests/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    env:
+      PROD_URL: https://klaska.net/onewheel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Resolve the deploy preview URL
+        id: preview
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR number (manual run); nothing to compare." >&2
+            echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "url=https://deploy-preview-${PR_NUMBER}--onewheel.netlify.app" >> "$GITHUB_OUTPUT"
+
+      # Netlify builds independently of this workflow, so the preview may not exist yet.
+      # Poll rather than assume, and fail with a clear message instead of screenshotting
+      # a 404 page and reporting it as a visual difference.
+      - name: Wait for the deploy preview
+        if: steps.preview.outputs.skip != 'true'
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -m 20 "$URL/" || true)
+            if [ "$code" = "200" ]; then echo "Preview ready after ${i} attempt(s)."; exit 0; fi
+            echo "attempt $i: HTTP $code, waiting..."
+            sleep 10
+          done
+          echo "::error::Deploy preview $URL did not become ready within ~10 minutes."
+          exit 1
+
+      - name: Build the page list from the preview sitemap
+        if: steps.preview.outputs.skip != 'true'
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          curl -s -m 30 "$URL/sitemap.xml" -o sitemap.xml
+          python3 - <<'PY'
+          import json, re, sys
+          xml = open('sitemap.xml', encoding='utf-8').read()
+          locs = re.findall(r'<loc>([^<]+)</loc>', xml)
+          paths = sorted({re.sub(r'^https?://[^/]+', '', u) or '/' for u in locs})
+          # Only HTML pages; the sitemap should not contain assets, but be defensive.
+          paths = [p for p in paths if not re.search(r'\.(xml|txt|pdf|png|jpe?g|svg|css|js)$', p)]
+          if not paths:
+              print('::error::No page paths found in the preview sitemap', file=sys.stderr)
+              sys.exit(1)
+          json.dump(paths, open('tests/pages.json', 'w'), indent=1)
+          print(f'{len(paths)} page(s):', ', '.join(paths))
+          PY
+
+      - name: Setup Node
+        if: steps.preview.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        if: steps.preview.outputs.skip != 'true'
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Compare preview against production
+        if: steps.preview.outputs.skip != 'true'
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        run: npx playwright test
+
+      - name: Upload diffs
+        if: failure() && steps.preview.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: |
+            visual-diffs/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore

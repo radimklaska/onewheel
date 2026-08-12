@@ -9,7 +9,7 @@ show_sidebar: false
 
 You will need additional hardware to manipulate the firmware in the BMS:
 * PICkit3 programmer (original) [https://www.microchip.com/Developmenttools/ProductDetails/PG164130](https://www.microchip.com/Developmenttools/ProductDetails/PG164130)
-* PICkit3.5 (clone, I tested with this one) [https://www.amazon.com/Bolsen-PICKIT3-5-Programmer-Programming-Simulation/dp/B07VLMFW8K](https://www.amazon.com/Bolsen-PICKIT3-5-Programmer-Programming-Simulation/dp/B07VLMFW8K)
+* PICkit3.5 (clone, I tested with this one) [https://www.hadex.cz/p/m545a-programator-pickit3-5](https://www.hadex.cz/p/m545a-programator-pickit3-5)
 * Other versions will be probably fine too. You will just have to research bit more.
 
 As for software, you will need **MPLAB IPE**
