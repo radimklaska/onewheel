@@ -1,0 +1,67 @@
+name: Link Checker
+
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Every Monday at 7:00 UTC
+  pull_request:
+    branches: ["master"]
+  workflow_dispatch:
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version-file: '.ruby-version'
+          bundler-cache: true
+
+      - name: Build site
+        run: bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      # This site is published under a base path, so its internal links look like
+      # /onewheel/bms/ while _site/ holds bms/ at its root. Staging the build under a
+      # matching directory lets lychee resolve those links instead of reporting every
+      # one of them as broken.
+      - name: Stage site at its published base path
+        run: |
+          mkdir -p _linkcheck/onewheel
+          cp -r _site/. _linkcheck/onewheel/
+
+      # Exclusions are sites that block or rate-limit automated requests and therefore
+      # produce false positives, not links known to be broken.
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --root-dir ${{ github.workspace }}/_linkcheck
+            --exclude amazon\.com
+            --exclude digikey\.com
+            --exclude mouser\.com
+            --exclude reddit\.com
+            --exclude instagram\.com
+            --exclude facebook\.com
+            --exclude linkedin\.com
+            _linkcheck/
+          fail: true
+
+      - name: Notify Discord on failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK secret is not set; skipping notification."
+            exit 0
+          fi
+          payload=$(jq -n --arg url "$RUN_URL" \
+            '{content: ("Broken links detected on klaska.net/onewheel! Report: " + $url)}')
+          curl -s -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK"

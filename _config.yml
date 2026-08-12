@@ -3,7 +3,16 @@ tagline: Deep dive into OneWheel internals
 email: radim@klaska.net
 description: >
   Deep dive into OneWheel internals
-remote_theme: chrisrhymes/bulma-clean-theme
+remote_theme: chrisrhymes/bulma-clean-theme@v1.3.1
+
+plugins:
+  - jekyll-remote-theme
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-paginate
 baseurl: "/onewheel"
 url: "https://radimklaska.github.io"
 permalink: pretty
