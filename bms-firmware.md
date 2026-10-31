@@ -107,13 +107,16 @@ it over the serial link.
 **Confidence.** Unless marked otherwise, a statement is *observed*: read directly from
 the code (registers, timing constants, thresholds, message layouts, EEPROM map). Items
 marked *inferred* are my interpretation (the physical meaning of a pin, what the
-controller does with a message). The open questions are listed at the end.
+controller does with a message, and every figure in amperes or ampere-hours, which rests
+on one external measurement). The open questions are listed at the end.
 
 # The backups behind this
 
 22 backups, which boil down to **6 distinct firmware images**. Backups with the same
 image are byte-for-byte the same program; they differ only in EEPROM contents and in
-the user-ID words of the chip.
+the user-ID words of the chip. A seventh image, Pint firmware 3008, is known only from
+serial captures published by the Owie project - see
+[Pint firmware 3008](#pint-firmware-3008-no-backup) below.
 
 | image | boards it came from | BMS PCB | backups | boot version (message `0x0B`) | version byte (message `0x08`) |
 |---|---|---|---|---|---|
@@ -153,13 +156,16 @@ from the internal oscillator with the PLL.
 | programming | high-voltage programming only | matches the PICkit [wiring](#wiring) above |
 
 The code-protected 2.0.7 / 2.0.8 boards were built with the same options apart from
-protection; the 2.0.7 ones also leave the watchdog under software control, and the
-2.0.8 one leaves the data EEPROM readable.
+protection; two of the three 2.0.7 boards (and the one of unknown PCB revision) also
+leave the watchdog under software control, and the 2.0.8 one leaves the data EEPROM
+readable.
 
 **Program structure.** One main loop and one interrupt handler. No RTOS, no bootloader,
 and no command that writes program memory - in these five images the only way to change
-the BMS firmware is the programming header. A 1 ms timer tick drives the timing, the
-UART interrupt collects frames from the controller.
+the BMS firmware is the programming header. A 1 ms timer tick drives the timing: the
+current is sampled on every tick, the measurements and most messages run once per second
+(see [The main loop](#the-main-loop)). The UART interrupt collects frames from the
+controller.
 
 # What the firmware sees on the board
 
@@ -168,7 +174,7 @@ is *inferred* from how the firmware uses it unless it is obvious from the hardwa
 
 | pin | direction | what the firmware does with it | role |
 |---|---|---|---|
-| RA0 | analog | sampled every loop, zero expected at mid-scale (2048 counts) | **pack current sensor**, bidirectional |
+| RA0 | analog | sampled every 1 ms, zero expected at mid-scale (2048 counts) | **pack current sensor**, bidirectional |
 | RA1 | out | high at boot, driven low as the very last step of a shutdown | **power latch / self-hold** - low powers the BMS off |
 | RA2 | analog | thermistor, 10 kΩ pull-up | pack thermistor T3 |
 | RA3 | reference | external 4.5 V ADC reference | cell mV = counts × 4500 / 4095 |
@@ -181,7 +187,7 @@ is *inferred* from how the firmware uses it unless it is obvious from the hardwa
 | RB2 | analog | thermistor with a different curve, clamped at 175 °C | board / FET temperature T4 |
 | RB3 | analog | 5-sample average every 100 ms; about 1.98 V or more = "charger present" | **charger voltage sense** |
 | RB4 | out, **Pint images only** | high while a charger is detected, low to suspend charging, low at shutdown; unused on XR | charge-enable (charge FET or relay) |
-| RB5 | in | polled every loop; high on two samples 2 ms apart = fault `QC` | hardware fault input (over-current comparator or latch) |
+| RB5 | in | polled on every pass of the fast loop; high on two samples 2 ms apart = fault `QC` | hardware fault input (over-current comparator or latch) |
 | RC0 | out | high at boot, low at shutdown | power enable for a peripheral (reference or sensor supply) |
 | RC1 | out | SPI chip select, 3 bytes per transaction | MAX14921 chip select |
 | RC3, RC4, RC5 | SPI | SPI master, 8 MHz, mode 0; the data coming back is never read | MAX14921 bus |
@@ -230,10 +236,17 @@ never trips anything, which is why I take it for a board or FET temperature (*in
 * 12-bit ADC through the 4.5 V reference. The sensor zero is measured at boot: 64 samples
   1 ms apart, averaged, accepted only within 2048 ± 15 counts. Up to 10 attempts, then
   fault `CS`.
-* The reported current is the mean of the last 16 samples, in **raw ADC counts** relative
-  to that zero. Positive is discharge, charging is negative.
+* The reported current is the mean of the last 16 samples (one per millisecond, so a
+  16 ms window), in **raw ADC counts** relative to that zero. Positive is discharge,
+  charging is negative.
 * **The firmware never converts counts to amperes.** The controller receives raw counts,
-  so the A-per-count scale cannot be read out of the BMS code (see "What I do not know").
+  so the A-per-count scale cannot be read out of the BMS code. The
+  [Owie](https://github.com/lolwheel/Owie) project measured about **55 mA per count** on
+  a Pint. That fits the board: it means a gain of 20 on the 1.00 mΩ shunt
+  (4.5 V / 4095 / 0.020 V/A = 54.9 mA per count), and it turns the state-of-charge full
+  scales below into 5.9 Ah (XR) and 2.6 Ah (Pint) for packs rated 6.0 Ah and 2.7 Ah. It
+  is a measurement, not something in the code, so every ampere figure on this page is
+  *inferred* from it.
 
 # Power-up sequence
 
@@ -253,31 +266,36 @@ otherwise the board shuts down with `CS` or `PR` before it ever talks to you.
 
 # The main loop
 
-Every iteration, in this order:
+The loop has two tiers. The **fast loop** runs on every pass, about once per millisecond:
 
 1. Clear the watchdog.
 2. Handle a received frame, if any.
 3. Check the hardware fault input (RB5).
-4. If at least 1 ms has passed: sample the current, update the 16-sample average, run
-   the over-current check, update the state-of-charge counter.
-5. Once per second: subtract the self-discharge allowance from the state-of-charge counter.
-6. Send messages `05` (current), `08` (version byte), `07` (thresholds), `03` (SOC %).
-7. Read the five thermistors.
-8. Scan the 15 cells and re-send the balancing mask to the front end.
-9. Send messages `02` (cells), `0C` (balancing mask), `04` (temperatures), `09` (last
-   fault).
-10. Charge-complete check, over-voltage, under-voltage, critical under-voltage and
-    over-temperature checks.
-11. Choose the cells to balance.
-12. Idle timer (zero-current shutdown).
-13. Every 100 ms: send `05` again, `00` (status flags) and `01` (shutdown countdown)
-    when one is running; check the charger edge and the power button.
+4. On every 1 ms tick: sample the current, update the 16-sample average, run the
+   over-current check, update the state-of-charge counter.
+5. Every 100 ms: send `05` (current), `00` (status flags) and `01` (shutdown countdown)
+   when one is running; check the charger edge and the power button.
 
-The loop period is not fixed. It is dominated by the 20 ms front-end sampling delay, the
-75 ADC conversions for the cells, the floating-point maths for the thermistors and about
-100 bytes of serial output - expect tens of milliseconds per iteration. This matters for
-every "countdown" below: they count iterations, not seconds, even though the firmware
-clearly thinks of them as seconds.
+Once per second the loop also runs the **measurement block**, in this order:
+
+1. Subtract the self-discharge allowance from the state-of-charge counter.
+2. Send messages `05` (current), `08` (version byte), `07` (thresholds), `03` (SOC %).
+3. Read the five thermistors.
+4. Scan the 15 cells and re-send the balancing mask to the front end.
+5. Send messages `02` (cells), `0C` (balancing mask), `04` (temperatures), `09` (last
+   fault).
+6. Charge-complete check, over-voltage, under-voltage, critical under-voltage and
+   over-temperature checks.
+7. Choose the cells to balance.
+8. Idle timer (zero-current shutdown).
+
+The measurement block takes tens of milliseconds - the 20 ms front-end sampling delay,
+75 ADC conversions for the cells, floating-point maths for the thermistors and 99 bytes
+of serial output; captures show message `02` leaving about 42 ms after the second
+starts. While it runs, the 1 ms current sampling is suspended and the missed ticks are
+not caught up afterwards. Everything below that is counted "per second" - the shutdown
+countdowns, the idle timer - lives in this block, so those counts are real seconds. The
+same structure is in all five readable images.
 
 # Serial protocol (BMS to controller)
 
@@ -312,27 +330,31 @@ and **echoed back** (from the length byte on, without header) by the Pint images
 
 ## Messages sent by the BMS
 
+"Every second" means the measurement block of the main loop; the 100 ms messages come
+from the fast loop and are independent of it.
+
 | type | payload | when | meaning |
 |---|---|---|---|
 | `00` | 1 byte | every 100 ms | status flags, see below |
 | `01` | `seconds`, `reason` | every 100 ms while a shutdown countdown is below 29 | `seconds` = smallest remaining countdown; `reason` bits: 1 over-voltage, 2 under-voltage, 4 over-temperature, 8 idle timer |
-| `02` | 15 × uint16 | every loop | cell voltages in **mV**, cell 1 to 15 |
-| `03` | 1 byte | every loop | state of charge in **%** |
-| `04` | 5 × uint8 | every loop | temperatures T0 to T4 in **°C** |
-| `05` | int16 | every loop and every 100 ms | pack current in raw ADC counts, positive = discharge |
-| `06` | 4 bytes | **4210 and Pint images only** | serial number, see "Pairing" |
-| `07` | `ov_hi ov_lo full_hi full_lo uv_hi uv_lo ot` | every loop | the four thresholds: over-voltage mV, charge-complete mV, under-voltage mV, over-temperature °C |
-| `08` | 1 byte | every loop | version byte: `04` (4206), `02` (4208 / 4209 / 4210), `06` (Pint) |
-| `09` | 1 byte | every loop | the last shutdown reason, read from EEPROM at boot (table below) |
-| `0B` | uint16 | once at boot | firmware version: 2006 (XR 4206 - 4209), 2007 (XR 4210), 3004 (Pint 5300), 3005 (Pint 5314) |
-| `0C` | uint16 | every loop | the balancing mask currently applied |
-| `0D` | `cycles_hi cycles_lo soh` | every loop, **4210 and Pint only** | cycle counter and state of health in % |
+| `02` | 16 × uint16 | every second | cell voltages in **mV**, cell 1 to 15, then a 16th word that is **not a cell**: the milliseconds elapsed since the start of the current second (about 42 ms in captures). Payload 32 bytes, frame 38 bytes |
+| `03` | 1 byte | every second | state of charge in **%** |
+| `04` | 5 × uint8 | every second | temperatures T0 to T4 in **°C** |
+| `05` | int16 | every second and every 100 ms | pack current in raw ADC counts, positive = discharge |
+| `06` | 4 bytes | **4210 and Pint images only**: every second (4210, Pint 5314) or once after boot (Pint 5300) | serial number, see "Pairing" |
+| `07` | `ov_hi ov_lo full_hi full_lo uv_hi uv_lo ot` | every second | the four thresholds: over-voltage mV, charge-complete mV, under-voltage mV, over-temperature °C |
+| `08` | 1 byte | every second | version byte: `04` (4206), `02` (4208 / 4209 / 4210), `06` (Pint) |
+| `09` | 1 byte | every second | the last shutdown reason, read from EEPROM at boot (table below) |
+| `0B` | uint16 | once at boot | firmware version: 2006 (XR 4206 - 4209), 2007 (XR 4210), 3004 (Pint 5300), 3005 (Pint 5314), 3008 (newer Pint, captures only) |
+| `0C` | uint16 | every second | the balancing mask currently applied |
+| `0D` | `cycles_hi cycles_lo soh` | every second, **4210 and Pint only** | cycle counter and state of health in % |
 | `0E` | 1 byte | **Pint only**, reply to a command | `01` after a successful unlock, `B6` after command `05` |
+| `0F`, `10`, `11` | 5, 10 and 4 bytes | **Pint 3008 only**, seen in captures | meaning unknown, see [Pint firmware 3008](#pint-firmware-3008-no-backup) |
 
-Loop order on the XR images: `05 08 07 03 02 0C 04 09`, about 97 bytes and 8 ms of bus
-time per iteration, plus `05 00` (and `01`) every 100 ms. The 4210 image inserts `0D 06`
-before `09`; the Pint 5300 image inserts `0D` and sends `06` only once after boot; the
-Pint 5314 image sends `06` on every loop too.
+Order of the once-per-second messages on the XR images: `05 08 07 03 02 0C 04 09`,
+99 bytes and about 8.6 ms of bus time per second, plus `05 00` (and `01`) every 100 ms.
+The 4210 image inserts `0D 06` before `09`; the Pint 5300 image inserts `0D` and sends
+`06` only once after boot; the Pint 5314 image inserts `06` after `04` as well.
 
 ### Status flags (message `00`)
 
@@ -366,12 +388,12 @@ boot.
 | `BU` | 3 | power button held for more than 9 ms after it had been released once, no charger present |
 | `QC` | 4 | hardware fault input (RB5) high on two samples 2 ms apart (*inferred*: over-current comparator or latch) |
 | `OC` | 5 | software over-current: 16-sample average above 472 counts (discharge only - charging current never trips it) |
-| `UV` | 6 | lowest cell at or below the under-voltage threshold for 30 iterations while not charging; SOC forced to 0 |
-| `CUV` | 7 | lowest cell below 2000 mV on two consecutive checks while not charging |
-| `OT` | 8 | hottest pack thermistor at or above **80 °C (hard-coded)** for 30 iterations |
-| `OV` | 9 | highest cell at or above the over-voltage threshold for 30 iterations while not charging; SOC forced to 100 % |
+| `UV` | 6 | lowest cell at or below the under-voltage threshold for 30 s while not charging; SOC forced to 0 |
+| `CUV` | 7 | lowest cell below 2000 mV on two consecutive once-per-second checks while not charging |
+| `OT` | 8 | hottest pack thermistor at or above **80 °C (hard-coded)** for 30 s |
+| `OV` | 9 | highest cell at or above the over-voltage threshold for 30 s while not charging; SOC forced to 100 % |
 | `PR` + 3 bytes | 10 | pre-charge failed (current still 68 counts or more above zero after 600 ms) |
-| `ZC` | 11 | zero current (between -2 and +7 counts) for 1200 iterations with no charger |
+| `ZC` | 11 | zero current (between -2 and +7 counts) for 1200 s (20 minutes) with no charger |
 | `CS` + 2 bytes | 12 | current-sensor zero out of range at boot |
 | `CC` | 13 | **Pint only**: charging current beyond the charge-current limit while the charge-enable output is on |
 
@@ -412,7 +434,7 @@ The data EEPROM is 256 bytes. In a backup `.hex` it is the block at byte address
 
 | address | size | content | default when the checksum fails |
 |---|---|---|---|
-| `0x00 - 0x03` | 32-bit, little-endian | **state-of-charge counter**; 100 % = 385 351 680 (`0x16F80000`) | about 30 % |
+| `0x00 - 0x03` | 32-bit, little-endian | **state-of-charge counter** in ADC counts × ms; 100 % = 385 351 680 (`0x16F80000`) | about 30 % |
 | `0x04 - 0x09` | | unused (`FF`) | |
 | `0x0A - 0x0B` | 16-bit, big-endian | over-voltage threshold, mV | 4300 (`10 CC`) |
 | `0x0C - 0x0D` | 16-bit, big-endian | under-voltage threshold, mV | 2500 (`09 C4`) |
@@ -453,7 +475,14 @@ backup and are **readable even on code-protected chips**.
 * XR 4210 and newer, and every Pint board: four words holding one byte each, together a
   32-bit number. The values grow with board age (roughly 29 000 on the oldest board I
   have, 281 000 on the newest), which makes them look like **factory serial numbers**
-  (*inferred*). One 2.0.8 board carries an obvious test pattern instead.
+  (*inferred*).
+* The one 4212 board on PCB 2.0.8 is the exception: its four words are not a serial
+  number but exactly the four bytes the [Owie](https://github.com/lolwheel/Owie)
+  interceptor has been sending in message `06` for every board since 2022 (its "pairing
+  circumvention without the BMS serial"), a value the controllers of its users evidently
+  accept. So there is an ID the controller side treats as valid for any pack
+  (*inferred*: a factory default or wildcard rather than a test pattern). The bytes are
+  in Owie's source code; I am not repeating them here.
 
 # How the firmware behaves
 
@@ -461,24 +490,28 @@ backup and are **readable even on code-protected chips**.
 
 The SOC is a **coulomb counter**, not a voltage estimate.
 
-* Every loop iteration the 16-sample average current (in counts) is subtracted from the
+* Every millisecond the 16-sample average current (in counts) is subtracted from the
   counter; charging (negative current) adds to it. Currents of a couple of counts around
-  zero are ignored.
+  zero are ignored. The unit of the counter is therefore **ADC counts × milliseconds**:
+  100 % on XR, 385 351 680, is 385 352 count-seconds, or about 5.9 Ah at the 55 mA per
+  count measured by Owie (*inferred*).
 * Once per second a trapezoid correction of (current + previous current) × 20.33 is
-  applied on top, and 2.8 counts are subtracted as a self-discharge / own-consumption
-  allowance.
+  applied on top (× 21 on Pint), and 2.8 counts are subtracted as a self-discharge /
+  own-consumption allowance. The correction is the size of the charge moved during the
+  roughly 40 ms in which the measurement block suspends the 1 ms sampling (*inferred*
+  purpose; the constant is observed).
 * The counter is clamped at 0 and, on the 4210 / Pint images, at the stored capacity.
 * Forced values: **99 %** while charging once the highest cell is within 20 mV of the
   charge-complete voltage (35 mV on Pint); **100 %** when it reaches that voltage, and on
-  every iteration in which the over-voltage condition holds; **0** on an under-voltage
+  every second in which the over-voltage condition holds; **0** on an under-voltage
   shutdown.
 * 100 % is a fixed constant on XR up to 4209 (385 351 680) and the stored *capacity* on
   4210 / Pint. The percentage in message `03` is counter ÷ that, truncated.
 * The counter is saved to EEPROM **only on a controlled power-off**.
 
-Because the per-iteration update uses counts × iterations and the loop period is not
-fixed, the unit is only consistent within one firmware; the correction factors above are
-how the firmware ties it to the 1 s tick.
+The capacity values of the 4210 and Pint images are in the same unit: the nominal
+377 487 360 of the XR 4210 is about 5.8 Ah and the Pint's 168 597 783 about 2.6 Ah at
+55 mA per count (*inferred* scale).
 
 ## Charging, balancing and charge termination
 
@@ -505,17 +538,20 @@ how the firmware ties it to the 1 s tick.
 
 | check | condition | countdown | result |
 |---|---|---|---|
-| over-voltage | highest cell ≥ over-voltage threshold (4300 mV) and current ≤ 0 | 30 iterations | SOC 100 %, `OV` |
-| under-voltage | lowest cell ≤ under-voltage threshold (2500 mV), no charger | 30 | SOC 0, `UV` |
-| critical under-voltage | lowest cell < 2000 mV, no charger | 2 | `CUV` |
-| over-temperature | hottest pack thermistor ≥ **80 °C, hard-coded** | 30 | `OT` |
-| over-current | 16-sample average > 472 counts (discharge) | none | `OC` |
+| over-voltage | highest cell ≥ over-voltage threshold (4300 mV) and current ≤ 0 | 30 s | SOC 100 %, `OV` |
+| under-voltage | lowest cell ≤ under-voltage threshold (2500 mV), no charger | 30 s | SOC 0, `UV` |
+| critical under-voltage | lowest cell < 2000 mV, no charger | 2 s | `CUV` |
+| over-temperature | hottest pack thermistor ≥ **80 °C, hard-coded** | 30 s | `OT` |
+| over-current | 16-sample average > 472 counts (discharge), checked every 1 ms | none | `OC` |
 | hardware fault input | RB5 high twice, 2 ms apart | none | `QC` |
-| idle | current between −2 and +7 counts, no charger | 1200 iterations | `ZC` |
+| idle | current between −2 and +7 counts, no charger | 1200 s (20 min) | `ZC` |
 
-A countdown is decremented once per loop iteration while its condition holds and reset
-(to 30, or 1200) as soon as it clears. Message `01` announces a countdown once it is
-below 29 (the 4210 and Pint images announce the under-voltage one below 26).
+A countdown is decremented once per second (the checks live in the once-per-second
+measurement block) while its condition holds and reset (to 30, or 1200) as soon as it
+clears, so the numbers are real seconds: 30 s for over-voltage, under-voltage and
+over-temperature, 2 s for the critical under-voltage, 20 minutes for the idle timer.
+Message `01` announces a countdown once it is below 29 (the 4210 and Pint images announce
+the under-voltage one below 26).
 
 Note what the EEPROM over-temperature threshold does **not** do: it only drives the
 "too hot" status flag. The shutdown at 80 °C is hard-coded in every image.
@@ -537,6 +573,10 @@ released** → power latch released → sleep.
 That last wait means a shorted power button keeps a "dead" board awake in the shutdown
 loop instead of letting it power off.
 
+The drain-and-wait also means anything listening on the bus has at least a second
+between the ASCII shutdown text and the power dropping. Message `0B`, by contrast, is
+the boot message - a device that waits for it to detect a power-off never triggers.
+
 # Firmware variants
 
 ## XR 4206 vs 4208 / 4209
@@ -551,7 +591,7 @@ balancing rules, all fault paths and all thresholds are **unchanged** from 4208 
 Two things are added:
 
 1. **Serial number.** At boot the firmware reads its four user-ID words and sends the
-   low byte of each in the new message `06` on every loop, and in the raw record before
+   low byte of each in the new message `06` every second, and in the raw record before
    power-off. That is all it does with them - see "Pairing".
 2. **Battery ageing model.** The EEPROM gains a usable capacity, a cycle counter and a
    throughput budget. The budget starts at 2 × capacity and is counted down by the
@@ -609,8 +649,26 @@ thermistor curves and clamps, balancing rules, every XR fault and threshold.
   XR / Pint pack energy ratio (324 Wh / 148 Wh = 2.19), which supports the same
   current-sensor scale on both boards (*inferred*).
 
-**5300 vs 5314**: the 5314 image sends the serial number (message `06`) on every loop
+**5300 vs 5314**: the 5314 image sends the serial number (message `06`) every second
 instead of once after boot, and reports version 3005 instead of 3004. Nothing else.
+
+## Pint firmware 3008 (no backup)
+
+The unit tests of the [Owie](https://github.com/lolwheel/Owie) project contain frames
+captured from a Pint BMS (every checksum verifies, version byte `06`). They come from an
+image newer than any backup I have:
+
+* boot message `0B` = **3008**;
+* three messages none of the readable images sends: `0F` (5 payload bytes), `10` (10
+  bytes) and `11` (4 bytes) - meaning unknown;
+* charge-complete threshold **4183 mV** in message `07` (5300 / 5314 default: 4185);
+* message `0D` reporting 730 cycles and 71 % health - exactly what the Pint fade table
+  above gives for 730 cycles, so the ageing model is unchanged;
+* message `02` with 16 words and the 16th word at 42 ms, so the layout around the cell
+  array is the same.
+
+Code, EEPROM layout and commands of 3008 are unknown until a backup turns up; whether
+the code-protected 2.0.7 Pint boards run it is unknown too.
 
 ## Summary
 
@@ -618,7 +676,7 @@ instead of once after boot, and reports version 3005 instead of 3004. Nothing el
 |---|---|---|---|---|---|
 | boot version (`0B`) | 2006 | 2006 | 2007 | 3004 | 3005 |
 | version byte (`08`) | `04` | `02` | `02` | `06` | `06` |
-| serial number (`06`) | - | - | every loop | once at boot | every loop |
+| serial number (`06`) | - | - | every second | once at boot | every second |
 | cycles / health (`0D`) | - | - | yes | yes | yes |
 | acknowledgements (`0E`), command `05` | - | - | - | yes | yes |
 | 100 % SOC | fixed constant | fixed constant | stored capacity (nominal 377 487 360) | stored capacity (nominal 168 597 783) | same |
@@ -648,6 +706,11 @@ This is the part most people ask about.
   (readable from any backup, even of a code-protected chip) and a firmware image that
   sends message `06` at all. A 4208 / 4209 image on a 4210 controller never sends the
   serial; a 4210 image with blank user-ID words would send `FF FF FF FF`.
+* There is also an ID known to be accepted: the one the Owie interceptor broadcasts for
+  every board, which one factory 2.0.8 board carries as well (see
+  [User ID words](#user-id-words)). Programming it into a replacement board's user-ID
+  words is an alternative to copying the original board's number (*inferred* from Owie's
+  field use; the BMS firmware itself does not care what the words contain).
 * I have **not** verified the controller side. The claim that the controller checks the
   serial is the only explanation consistent with the BMS code, but it is an inference.
 
@@ -684,6 +747,11 @@ charge-complete and over-temperature-flag thresholds within the ranges listed un
 "Commands"; they are stored in EEPROM immediately. Remember that the over-temperature
 **shutdown** stays at 80 °C whatever you set.
 
+The link is not one-way, and that matters for interceptors: Owie cuts the controller's
+wires and only re-drives the BMS-to-controller direction, so with it installed nothing
+can unlock the BMS or send command `05`. A Pint BMS behind an Owie therefore stays at
+the 73-count charge-current limit.
+
 ## Replacing a BMS board
 
 * Same generation, 4209 or older: any board with the same image behaves identically;
@@ -707,7 +775,7 @@ revision - if you have one, you know where to send the backup.
 * Keep the output **unloaded during the first second** after power-up (zero calibration
   and pre-charge), or the board shuts down with `CS` or `PR`.
 * With no charger and a current within −2 … +7 counts the board **powers itself off after
-  1200 loop iterations** (`ZC`).
+  20 minutes** (1200 s, `ZC`).
 * With a charger connected the power button does nothing; when the charger goes away the
   board powers off (`CD`).
 * Balancing only happens on the charger.
@@ -727,11 +795,13 @@ revision - if you have one, you know where to send the backup.
 
 # What I do not know
 
-* The **ampere-per-count scale** of the current sensor. The BMS never converts; the
-  controller does.
-* The **real loop period**, which defines the SOC counter unit and the "seconds" of the
-  countdowns.
-* What the **controller does with message `06`**. The BMS side only reports it.
+* The **ampere-per-count scale** of the current sensor from the code itself. The BMS
+  never converts; the controller does. The 55 mA per count used above is Owie's
+  measurement on one Pint, not mine.
+* What the **controller does with message `06`**. The BMS side only reports it; the one
+  value known to be accepted everywhere is the one Owie sends.
+* The meaning of messages `0F`, `10` and `11` of **Pint firmware 3008**, and that image
+  itself - no backup yet.
 * Anything about the code-protected 2.0.7 / 2.0.8 images beyond their configuration
   words and, for the 2.0.8 board, the EEPROM layout.
 
