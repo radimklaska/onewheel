@@ -770,6 +770,30 @@ from protection. They cannot be cloned; erasing the chip removes the protection 
 with the code. The only way to get their firmware is an unprotected board of the same
 revision - if you have one, you know where to send the backup.
 
+### Telling a protected backup apart with binwalk
+
+A protected backup is not encrypted, it is just empty. An entropy plot shows this at a
+glance:
+
+```sh
+binwalk -E backup.hex
+```
+
+Add `-J` to save the plot as `backup.hex.png` instead of opening a window. If it fails with
+`NameError: name 'np' is not defined`, a user-installed `numba` is clashing with the
+Debian/Ubuntu binwalk package; `PYTHONNOUSERSITE=1 binwalk -E backup.hex` gets around it.
+
+binwalk reads the `.hex` file as ASCII text, so the scale tops out at about 0.5 (only 16
+hex digits), not 1.0.
+
+| Unprotected: XR 4210, PCB 2.0.5 | Protected: XR 4210, PCB 2.0.7 |
+|---|---|
+| ![Entropy of an unprotected BMS backup](images/bms_entropy_xr4210_pcb2.0.5_unprotected.png) | ![Entropy of a code-protected BMS backup](images/bms_entropy_xr4210_pcb2.0.7_protected.png) |
+| Varied data at ~0.45: real code. | Flat ~0.16 across the whole file: all-zero program memory, where only the record addresses and checksums change. |
+
+An encrypted image would look different again: flat but pinned near the top of the scale.
+None of the backups I have look like that.
+
 ## Bench behaviour worth knowing
 
 * Keep the output **unloaded during the first second** after power-up (zero calibration
