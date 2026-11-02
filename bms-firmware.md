@@ -64,7 +64,7 @@ XR firmware is styled `Gemini - 41xx`. They are easy to mix up.
 |Relevant revisions|Expectation/Limitation|Note|
 |---|---|---|
 |4206 - 4209|No controller <-> BMS pairing. Battery upgrades work without a chip.||
-|4210|**Controller <-> BMS pairing starts here.** Battery upgrades still possible on `Gemini - 4144` and older; a JWFFM or Owie chip is needed otherwise.|From `4210` the update process also pulls a **bootloader**, not just the firmware file. On the BMS side the pairing is only a serial-number broadcast; the controller does the checking - see [Pairing](#pairing-what-the-bms-actually-does) below.|
+|4210|**Controller <-> BMS pairing starts here.** Battery upgrades still possible on `Gemini - 4144` and older; a JWFFM or [Owie](#owie-bypassing-pairing-and-running-a-bigger-battery) chip is needed otherwise.|From `4210` the update process also pulls a **bootloader**, not just the firmware file. On the BMS side the pairing is only a serial-number broadcast; the controller does the checking - see [Pairing](#pairing-what-the-bms-actually-does) below.|
 |4211|Paired. Battery upgrades need a chip.||
 |4212|Paired. `Code Protection` enabled on the PIC on the BMS = no firmware downloads.|If the PCB is still the same, it should be possible to replace the chip and program it with older fw. It may not be paired any more, but it should work with older boards at least. Downgrading firmware on `4212` has been reported to leave boards unbootable.|
 |4213|Paired. Same expectations as `4212`.|Not confirmed whether the `4212` downgrade limitation applies here.|
@@ -74,7 +74,7 @@ XR firmware is styled `Gemini - 41xx`. They are easy to mix up.
 |Firmware|Expectation/Limitation|Note|
 |---|---|---|
 |`Gemini - 4144` and older|Battery upgrades work. On `4210` hardware no chip is needed.|`4134` is the common shipping firmware for `4206` - `4209`.|
-|`Gemini - 4150` - `4162`|Battery upgrades need a JWFFM or Owie chip.||
+|`Gemini - 4150` - `4162`|Battery upgrades need a JWFFM or [Owie](#owie-bypassing-pairing-and-running-a-bigger-battery) chip.||
 |`Gemini - 4165`|**Battery upgrades are not possible - a chip does not help.**|This is the haptic buzz firmware from the CPSC recall. The same file is used for every board; `4210` and newer also pull a new bootloader.|
 
 There is also an authentication change at **`Gemini - 4141`**: older firmware uses a
@@ -83,6 +83,8 @@ community tools support only one or the other.
 
 General limitations of working with BMS firmware:
 * Most likely no bigger battery "unlocks" for `4210` or newer with BMS alterations.
+  An interceptor between the BMS and the controller works around this instead - see
+  [Owie](#owie-bypassing-pairing-and-running-a-bigger-battery) below.
 * A used board that a previous owner updated to `Gemini - 4165` has lost the ability to
   take a bigger battery.
 
@@ -713,6 +715,91 @@ This is the part most people ask about.
   field use; the BMS firmware itself does not care what the words contain).
 * I have **not** verified the controller side. The claim that the controller checks the
   serial is the only explanation consistent with the BMS code, but it is an inference.
+
+# Owie: bypassing pairing and running a bigger battery
+
+[Owie](https://github.com/radimklaska/owie) is a small ESP8266 board (a Wemos D1 Mini
+Lite) wired into the serial link between the BMS and the controller. It does not touch
+the BMS firmware. It receives every frame the BMS sends, changes or drops a few of them
+and re-sends the rest to the controller. That is enough for the two things people
+install it for: using a BMS the controller was not paired with, and running a bigger
+battery on firmware that would otherwise refuse it. It also opens a WiFi network with a
+status page showing cell voltages, current, temperatures, cycles and the other values
+the BMS reports.
+
+The original project is [lolwheel/Owie](https://github.com/lolwheel/Owie), whose last
+release is from 2022. I maintain a fork at
+[radimklaska/owie](https://github.com/radimklaska/owie) that carries the protocol
+findings from this page (shutdown codes, temperatures, status flags, BMS info) and
+publishes current [releases](https://github.com/radimklaska/owie/releases).
+
+## How Owie gets past pairing
+
+On 4210 and newer boards the BMS side of pairing is only the serial number in message
+`06` (see [Pairing](#pairing-what-the-bms-actually-does)). Owie replaces those four
+bytes with one fixed ID that controllers accept, the same value one factory 2.0.8 board
+carries in its user-ID words (see [User ID words](#user-id-words)). Every XR or Pint BMS
+then looks the same to the controller, so a replacement BMS or a different pack works
+without copying the original board's serial (*inferred* from Owie's field use). The
+serial the BMS really sent is shown on Owie's status page.
+
+## How Owie makes a bigger battery work
+
+The BMS counts charge against the capacity it was built for (see
+[State of charge](#state-of-charge)), and the controller keeps a tally of its own. With
+a bigger pack both run out long before the cells do. Owie changes three messages:
+
+* **Message `03` (state of charge)** is replaced with Owie's own percentage. Owie learns
+  the usable range of the installed pack from the cell voltage at the top and bottom of
+  the charge it has seen, and counts the current in between, so the percentage fits
+  whatever pack is in the board.
+* **Message `00` (status flags)** is dropped during normal riding. According to Owie's
+  source, forwarding it drives the controller's own amp-hour tally, which ends in
+  Error 23 on a bigger pack. It is still passed on while charging and whenever the BMS
+  flags under-voltage, over-voltage or a temperature out of range, so the controller
+  keeps the final pushback before an empty pack and those warnings.
+* **Message `05` (current)** is dropped except while charging, when it lets the app show
+  a charging time estimate.
+
+Right after installation the board can report 1 %. Plugging in the charger fixes it,
+because Owie and the controller then see a fresh charge state.
+
+## What Owie cannot do
+
+* It does not help on `Gemini - 4165`; see the [firmware table](#by-firmware-version)
+  above. On `Gemini - 4150` - `4162` it is one of the two chips that make battery
+  upgrades work.
+* It only re-drives the BMS-to-controller direction, so nothing can unlock the BMS or
+  send it commands while Owie is installed (see
+  [Changing thresholds over the serial link](#changing-thresholds-over-the-serial-link)).
+  A Pint BMS therefore stays at its 73-count (about 4 A) charge-current limit, and a fast
+  charger might trip the `CC` protection. That follows from the BMS firmware and has not
+  been confirmed on a board.
+* It changes what the controller sees, not what the BMS does. The BMS still enforces its
+  own over-voltage, under-voltage, temperature and over-current protections and its
+  20-minute idle timer.
+
+## Flashing Owie
+
+The [Owie flashing tool](https://klaska.net/owie-flashingtool/) flashes the D1 Mini from
+the browser (source:
+[radimklaska/owie-flashingtool](https://github.com/radimklaska/owie-flashingtool)).
+
+1. Plug the D1 Mini into a computer with a USB cable.
+2. Open the tool in Chrome, Edge or Opera on a desktop. It uses Web Serial, which
+   Firefox and Safari do not support. You may need
+   [USB-to-serial drivers](https://esphome.github.io/esp-web-tools/#drivers).
+3. Pick a release and click its install button. The tool lists the releases of my fork
+   by default. The dropdown switches to lolwheel/Owie or any other repository, and a
+   `.bin` downloaded by hand can be flashed too. Open pull requests with a CI build are
+   listed as well, for testing.
+4. After flashing, the D1 Mini opens a WiFi network named `Owie-XXXX`. Later updates go
+   over that network, so the board does not have to be opened again.
+
+Wiring it into the board takes some soldering: the white and green wires of the
+controller connector are cut and routed through the D1 Mini, and it takes power from the
+BMS. The [Owie README](https://github.com/radimklaska/owie#installing-owie-into-your-board)
+has the step-by-step instructions and links an installation video.
 
 # Practical consequences
 

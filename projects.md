@@ -30,3 +30,15 @@ Conversion from OneWheel battery balance connector to standard 15S JST connector
 * Link: [https://github.com/radimklaska/onewheel-pcb#15s-jst](https://github.com/radimklaska/onewheel-pcb#15s-jst)
 
 [![PCBs for OneWheel](images/PCB_onewheel_15s_jst.png)](https://github.com/radimklaska/onewheel-pcb "Helpful PCBs for OneWheel")
+
+# Software
+
+## Owie
+
+An ESP8266 board that sits between the BMS and the controller. It gets past
+controller <-> BMS pairing, makes a bigger battery work on firmware that would otherwise
+refuse it, and shows cell voltages, current and temperatures over WiFi. How it works and
+what it cannot do: [BMS firmware - Owie]({{ site.baseurl }}/bms-firmware/#owie-bypassing-pairing-and-running-a-bigger-battery).
+
+* Firmware: [https://github.com/radimklaska/owie](https://github.com/radimklaska/owie) (fork of [lolwheel/Owie](https://github.com/lolwheel/Owie))
+* Flashing tool: [https://klaska.net/owie-flashingtool/](https://klaska.net/owie-flashingtool/) (source: [radimklaska/owie-flashingtool](https://github.com/radimklaska/owie-flashingtool))
