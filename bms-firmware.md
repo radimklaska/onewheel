@@ -40,7 +40,7 @@ As for software, you will need **MPLAB IPE**
 
 # I have the `*.hex` file. Now what?
 
-* [Consider supporting me.](https://github.com/sponsors/radimklaska) :)
+* [Consider supporting me.](https://klaska.net/support/) :)
 * Check the BMS PCB revision (something like `2.0.5` in the corner of the PCB), board hardware version (`4209`, in your app, under `dignostics`) and send info about your versions and `.hex` file to [radim@klaska.net](mailto:radim@klaska.net). Thanks! :)
 * Have a look at [https://ghidra-sre.org/](https://ghidra-sre.org/)
   * This will decompile the `*.hex` and show actual code. (Keep in mind that decompiled code is ugly and not very intuitive.)

@@ -19,7 +19,7 @@ baseurl: "/onewheel"
 url: "https://klaska.net"
 permalink: pretty
 google_analytics: G-TW57BHBR4D
-gh_sponsor: radimklaska
+sponsor_url: "https://klaska.net/support/"
 markdown: kramdown
 highlighter: rouge
 fixed_navbar: top

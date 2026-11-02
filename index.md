@@ -12,7 +12,7 @@ I was not able to find much of detailed info about OneWheel internals. My aim is
 # Help
 
 * If you have time, please help by extending this page: [https://github.com/radimklaska/onewheel](https://github.com/radimklaska/onewheel)
-* If you have money, please motivate me to extend this page: [https://github.com/sponsors/radimklaska](https://github.com/sponsors/radimklaska)
+* If you have money, please motivate me to extend this page: [https://klaska.net/support/](https://klaska.net/support/)
 
 # Disclaimer
 
