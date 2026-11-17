@@ -15,8 +15,8 @@ group :jekyll_plugins do
 
   # REQUIRED, not optional. Pages link images and datasheets relatively, e.g.
   # ![](images/foo.png) and [x.pdf](assets/x.pdf). With `permalink: pretty` a page
-  # lives at /onewheel/projects/, so a relative path would resolve to
-  # /onewheel/projects/images/foo.png and 404. This rewrites them site-absolute.
+  # lives at /projects/, so a relative path would resolve to
+  # /projects/images/foo.png and 404. This rewrites them site-absolute.
   #
   # Pinned to 0.6.1, the version GitHub Pages used. 0.8.0 stops rewriting the
   # image-inside-a-link form `[![alt](images/x.png)](https://...)` used in

@@ -41,4 +41,4 @@ refuse it, and shows cell voltages, current and temperatures over WiFi. How it w
 what it cannot do: [BMS firmware - Owie]({{ site.baseurl }}/bms-firmware/#owie-bypassing-pairing-and-running-a-bigger-battery).
 
 * Firmware: [https://github.com/radimklaska/owie](https://github.com/radimklaska/owie) (fork of [lolwheel/Owie](https://github.com/lolwheel/Owie))
-* Flashing tool: [https://klaska.net/owie-flashingtool/](https://klaska.net/owie-flashingtool/) (source: [radimklaska/owie-flashingtool](https://github.com/radimklaska/owie-flashingtool))
+* Flashing tool: [https://owie-flashingtool.klaska.net/](https://owie-flashingtool.klaska.net/) (source: [radimklaska/owie-flashingtool](https://github.com/radimklaska/owie-flashingtool))
