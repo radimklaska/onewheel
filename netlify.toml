@@ -1,5 +1,5 @@
 # Netlify builds deploy previews for pull requests. The production site is served
-# from GitHub Pages at klaska.net/onewheel — Netlify is here for previews only.
+# from GitHub Pages at onewheel.klaska.net — Netlify is here for previews only.
 
 [build]
   publish = "_site"
@@ -12,9 +12,8 @@
   JEKYLL_ENV = "production"
 
 # Deploy previews and branch deploys are served from the ROOT of a
-# *.netlify.app host, not from /onewheel. The production baseurl would make
-# every link, image and stylesheet resolve to /onewheel/... — a preview where
-# nothing loads. Build these contexts with an empty baseurl instead.
+# *.netlify.app host, like production. The baseurl is already empty; passing it
+# explicitly keeps previews working if a base path ever comes back.
 [context.deploy-preview]
   command = "bundle exec jekyll build --baseurl ''"
 

@@ -781,7 +781,7 @@ because Owie and the controller then see a fresh charge state.
 
 ## Flashing Owie
 
-The [Owie flashing tool](https://klaska.net/owie-flashingtool/) flashes the D1 Mini from
+The [Owie flashing tool](https://owie-flashingtool.klaska.net/) flashes the D1 Mini from
 the browser (source:
 [radimklaska/owie-flashingtool](https://github.com/radimklaska/owie-flashingtool)).
 

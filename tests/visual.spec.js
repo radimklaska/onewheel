@@ -17,7 +17,7 @@ const { PNG } = require('pngjs');
 const pixelmatch = require('pixelmatch');
 
 const PREVIEW = (process.env.PREVIEW_URL || '').replace(/\/$/, '');
-const PROD = (process.env.PROD_URL || 'https://klaska.net/onewheel').replace(/\/$/, '');
+const PROD = (process.env.PROD_URL || 'https://onewheel.klaska.net').replace(/\/$/, '');
 // Fraction of differing pixels tolerated per page. Antialiasing and image
 // recompression produce a small nonzero floor even between identical renders.
 const MAX_DIFF_RATIO = Number(process.env.MAX_DIFF_RATIO || 0.002);

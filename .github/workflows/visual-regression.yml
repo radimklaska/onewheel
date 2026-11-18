@@ -31,7 +31,7 @@ jobs:
   compare:
     runs-on: ubuntu-latest
     env:
-      PROD_URL: https://klaska.net/onewheel
+      PROD_URL: https://onewheel.klaska.net
     steps:
       - name: Checkout
         uses: actions/checkout@v7

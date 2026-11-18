@@ -1,6 +1,6 @@
 # OneWheel technical info
 
-Visit the site: [https://klaska.net/onewheel](https://klaska.net/onewheel)
+Visit the site: [https://onewheel.klaska.net](https://onewheel.klaska.net)
 
 # What to expect
 
