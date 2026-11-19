@@ -18,7 +18,6 @@ baseurl: ""
 # `url` must name the canonical host or every canonical tag points at a redirect.
 url: "https://onewheel.klaska.net"
 permalink: pretty
-google_analytics: G-TW57BHBR4D
 sponsor_url: "https://klaska.net/support/"
 markdown: kramdown
 highlighter: rouge
