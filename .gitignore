@@ -4,10 +4,12 @@
 _site
 .idea
 .DS_Store
-.netlify
 node_modules
 test-results
 playwright-report
 visual-diffs
 tests/pages.json
-sitemap.xml
+visual-results
+visual-report
+lighthouse
+.wrangler

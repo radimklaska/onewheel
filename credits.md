@@ -12,7 +12,7 @@ show_sidebar: false
   * Originaly started the repo
   * Pint and +XR charger info
 * [Radim Klaška](https://github.com/radimklaska)
-  * [Sponsor](https://github.com/sponsors/radimklaska)
+  * [Sponsor](https://klaska.net/support/)
   * Further info aggregation
   * Maintainig the struture, moderation...
   * Trying to keep everything up to date

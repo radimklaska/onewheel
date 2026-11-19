@@ -1,13 +1,16 @@
 {
-  "name": "onewheel-site-tests",
+  "name": "onewheel-site-tools",
   "private": true,
-  "description": "Visual regression tests comparing a PR's Netlify deploy preview against production.",
+  "description": "Deploy tooling (wrangler) and PR checks: visual regression of a PR's Cloudflare preview against production, Lighthouse, the preview QR code.",
   "scripts": {
     "test:visual": "playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.1",
-    "pixelmatch": "^5.3.0",
-    "pngjs": "^7.0.0"
+    "@playwright/test": "1.65.0",
+    "lighthouse": "13.6.0",
+    "pixelmatch": "8.0.0",
+    "pngjs": "7.0.0",
+    "qrcode": "1.5.4",
+    "wrangler": "4.160.1"
   }
 }

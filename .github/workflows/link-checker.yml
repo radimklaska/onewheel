@@ -9,7 +9,7 @@ on:
 
 jobs:
   check-links:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ruby/setup-ruby has no Ruby 3.3.6 build for ubuntu-26.04 (ubuntu-latest)
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -17,22 +17,12 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version-file: '.ruby-version'
           bundler-cache: true
 
       - name: Build site
         run: bundle exec jekyll build
         env:
           JEKYLL_ENV: production
-
-      # This site is published under a base path, so its internal links look like
-      # /onewheel/bms/ while _site/ holds bms/ at its root. Staging the build under a
-      # matching directory lets lychee resolve those links instead of reporting every
-      # one of them as broken.
-      - name: Stage site at its published base path
-        run: |
-          mkdir -p _linkcheck/onewheel
-          cp -r _site/. _linkcheck/onewheel/
 
       # --remap: the generated feed.xml and robots.txt reference the production host
       #   absolutely. Resolved as-is they would test the currently deployed site
@@ -57,13 +47,13 @@ jobs:
         with:
           args: >-
             --no-progress
-            --root-dir ${{ github.workspace }}/_linkcheck
-            --remap "https://klaska.net/onewheel/ file://${{ github.workspace }}/_linkcheck/onewheel/"
+            --root-dir ${{ github.workspace }}/_site
+            --remap "https://onewheel.klaska.net/ file://${{ github.workspace }}/_site/"
             --exclude digikey\.com
             --exclude microchip\.com
             --exclude reddit\.com
             --exclude instagram\.com
-            _linkcheck/
+            _site/
           fail: true
 
       - name: Notify Discord on failure
@@ -77,5 +67,5 @@ jobs:
             exit 0
           fi
           payload=$(jq -n --arg url "$RUN_URL" \
-            '{content: ("Broken links detected on klaska.net/onewheel! Report: " + $url)}')
+            '{content: ("Broken links detected on onewheel.klaska.net! Report: " + $url)}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK"

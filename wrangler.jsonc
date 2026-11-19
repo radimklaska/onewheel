@@ -1,0 +1,31 @@
+// onewheel.klaska.net: an assets-only Worker serving the Jekyll build (_site/). No
+// Worker script, so every request is a free static-asset request. The klaska.net zone
+// injects the Cloudflare Web Analytics beacon automatically.
+// Same setup as https://cfsite.klaska.net (repo radimklaska/cfsite).
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "onewheel",
+  "compatibility_date": "2026-11-15",
+
+  // Production is the custom domain only. Per-PR previews stay on workers.dev,
+  // where Cloudflare adds X-Robots-Tag: noindex automatically.
+  "workers_dev": false,
+  "preview_urls": true,
+
+  // Cloudflare owns this hostname's DNS record and certificate. Existing DNS
+  // records for it must be deleted first: the deploy does not replace them
+  // (error 100117 "already has externally managed DNS records").
+  "routes": [{ "pattern": "onewheel.klaska.net", "custom_domain": true }],
+
+  // Workers Previews (`wrangler preview`, one per PR, see deploy.yml). Nothing to
+  // configure for an assets-only Worker, but the block has to exist.
+  "previews": {},
+
+  "assets": {
+    // Build first: bundle exec jekyll build
+    "directory": "./_site",
+    "html_handling": "auto-trailing-slash",
+    // Serves 404.html (from 404.md) with a 404 status.
+    "not_found_handling": "404-page"
+  }
+}
