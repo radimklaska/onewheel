@@ -7,7 +7,7 @@ module.exports = defineConfig({
   testDir: './tests',
   // Screenshots of two sites per page; parallelism mostly waits on the network.
   workers: 4,
-  // A single retry absorbs a cold Netlify edge cache or a slow image.
+  // A single retry absorbs a cold edge cache or a slow image.
   retries: 1,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   outputDir: 'test-results',

@@ -28,6 +28,15 @@ Site is based on https://github.com/chrisrhymes/bulma-clean-theme theme.
 * `cd onewheel`
 * `bundle exec jekyll serve`
 
+## Hosting and pull requests
+
+The site is served by a Cloudflare Worker (`wrangler.jsonc`, workflow
+`.github/workflows/deploy.yml`): every push to `master` deploys
+https://onewheel.klaska.net. Every pull request gets its own preview, linked in a PR
+comment with a QR code and Lighthouse scores. When a PR changes the toolchain (Gemfile,
+`_config.yml`, `_data/`, `_includes/`, the workflows, ...), every page of the preview is
+also compared with production. Same setup as https://cfsite.klaska.net.
+
 # Contributors
 
 ![](contributors.svg)
