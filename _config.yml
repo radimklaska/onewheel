@@ -23,3 +23,17 @@ sponsor_url: "https://klaska.net/support/"
 markdown: kramdown
 highlighter: rouge
 fixed_navbar: top
+
+# Repo tooling that must not be published (Jekyll's defaults, such as Gemfile and
+# node_modules, stay excluded too).
+exclude:
+  - readme.md
+  - wrangler.jsonc
+  - package.json
+  - package-lock.json
+  - playwright.config.js
+  - tests/
+  - visual-diffs/
+  - visual-results/
+  - visual-report/
+  - lighthouse/

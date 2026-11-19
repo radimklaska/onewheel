@@ -1,0 +1,540 @@
+name: Deploy to Cloudflare
+
+# Builds the Jekyll site and deploys _site/ to Cloudflare (assets-only Worker,
+# see wrangler.jsonc). Previews are Cloudflare Workers Previews.
+#   push to master    -> production (onewheel.klaska.net)
+#   PR opened/pushed  -> a Preview named pr-<N> on workers.dev, linked in a new PR
+#                        comment (earlier ones are collapsed as outdated); plus
+#                        visual regression against production when the toolchain
+#                        changed (job `visual`) and Lighthouse scores of the
+#                        preview's home page (job `lighthouse`, informational);
+#                        job `comment` then fills both results into that comment.
+#                        Same setup as https://cfsite.klaska.net, plus the
+#                        toolchain gate on `visual` (cfsite's documented variant
+#                        for sites whose PRs are mostly content edits)
+#   PR closed/merged  -> the Preview is deleted, the preview comments are collapsed
+#                        and a new comment says so
+#
+# Secrets: CLOUDFLARE_API_TOKEN (deploy token: Workers Scripts Edit + Account
+# Settings Read on the account, Workers Routes Edit + Zone Read on klaska.net;
+# created with cfsite's scripts/create-deploy-token.sh),
+# CLOUDFLARE_ACCOUNT_ID. Fork and Dependabot PRs get no secrets: they still build
+# (the build is the check) but get no preview and no visual regression.
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  # One production deploy at a time; one run per PR (a close waits for a running deploy).
+  group: deploy-${{ github.event_name == 'pull_request' && github.event.number || 'production' }}
+  cancel-in-progress: false
+
+env:
+  PREVIEW_MARKER: '<!-- preview-links -->'
+  # Shell function used by the steps that post preview comments: collapses (GitHub
+  # "minimize", reason OUTDATED) every earlier preview comment on the PR, except the
+  # node ID given as $1, and prints the IDs it collapsed. Content stays readable.
+  COLLAPSE_OLD_PREVIEW_COMMENTS: |
+    collapse_old_preview_comments() {
+      gh api graphql --paginate -f owner="${REPO%/*}" -f name="${REPO#*/}" -F pr="$PR" -f query='
+        query($owner: String!, $name: String!, $pr: Int!, $endCursor: String) {
+          repository(owner: $owner, name: $name) { pullRequest(number: $pr) {
+            comments(first: 100, after: $endCursor) {
+              pageInfo { hasNextPage endCursor }
+              nodes { id isMinimized author { login } body } } } } }' \
+        --jq ".data.repository.pullRequest.comments.nodes[]
+          | select(.author.login == \"github-actions\" and (.isMinimized | not)
+                   and (.body | startswith(\"$PREVIEW_MARKER\"))) | .id" |
+      while read -r node; do
+        [ "$node" = "${1:-}" ] && continue
+        gh api graphql -f id="$node" -f query='mutation($id: ID!) {
+          minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) { minimizedComment { isMinimized } } }' > /dev/null
+        echo "$node"
+      done
+    }
+
+jobs:
+  deploy:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-24.04 # ruby/setup-ruby has no Ruby 3.3.6 build for ubuntu-26.04 (ubuntu-latest)
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write # the preview-links comment
+    env:
+      IS_PR: ${{ github.event_name == 'pull_request' }}
+      HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    outputs:
+      preview_url: ${{ steps.preview.outputs.url }}
+      comment_id: ${{ steps.comment.outputs.id }}
+      toolchain_changed: ${{ steps.changes.outputs.toolchain }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # On a PR this is the merge commit; its first parent is the base branch,
+          # so HEAD^1..HEAD is exactly what the PR changes.
+          fetch-depth: 2
+
+      # Visual regression runs ONLY when the toolchain changes - dependencies, site
+      # config, templates, styles, plugins, or the workflows themselves. Deliberately
+      # not on content changes: editing a page is *supposed* to change how it looks,
+      # so a diff against production would be noise. When only the toolchain moves,
+      # the rendered pages should be pixel-identical, and anything that is not is
+      # worth a human looking at. _data/ is the navigation menu, so it counts as
+      # toolchain; the pages themselves (*.md, images/, assets/) are content.
+      - name: Did the toolchain change?
+        id: changes
+        if: env.IS_PR == 'true'
+        run: |
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          echo "$changed"
+          if echo "$changed" | grep -qE '^(Gemfile|Gemfile\.lock|package-lock\.json|\.ruby-version|_config\.yml|_data/|_includes/|_layouts/|_sass/|package\.json|playwright\.config\.js|tests/|wrangler\.jsonc|\.github/workflows/)'; then
+            echo "toolchain=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Build with Jekyll
+        run: bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      # The 404 page exists, and no repo tooling slipped into the published folder
+      # (exclude: in _config.yml).
+      - name: Check the build
+        run: |
+          test -f _site/404.html
+          test -f _site/index.html
+          for f in package.json package-lock.json wrangler.jsonc playwright.config.js tests readme.md; do
+            if [ -e "_site/$f" ]; then echo "::error::_site/$f would be published"; exit 1; fi
+          done
+
+      - name: Keep the build for visual regression
+        if: steps.changes.outputs.toolchain == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: _site/
+          include-hidden-files: true
+          retention-days: 1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # Every tool is pinned exactly in package.json, with package-lock.json committed.
+      - name: Install wrangler
+        if: env.IS_PR != 'true' || env.HAS_CF_TOKEN == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Deploy to production
+        if: env.IS_PR != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+
+      # Workers Previews (open beta): one Preview per PR, updated on every push. It
+      # creates the Worker if it does not exist yet, without deploying any route.
+      #
+      # The PR comment shows a QR code of the preview URL for opening it on a phone.
+      # GitHub comments cannot embed data: images, so the PNG is published inside the
+      # preview itself (/pr-preview-qr.png, previews only, never production). That
+      # needs the URL before the upload: it is predicted from the Worker name and the
+      # account's workers.dev subdomain, then checked against what wrangler reports.
+      # On a mismatch the QR is redone and the preview uploaded once more.
+      - name: Upload the PR preview
+        id: preview
+        if: env.IS_PR == 'true' && env.HAS_CF_TOKEN == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PR: ${{ github.event.number }}
+          WORKERS_SUBDOMAIN: radim-3ce # <subdomain>.workers.dev of the Cloudflare account
+          QR_FILE: pr-preview-qr.png
+        run: |
+          upload() {
+            rc=0
+            npx wrangler preview --name "pr-$PR" --message "PR #$PR" --json > preview.out 2> preview.err || rc=$?
+            if [ "$rc" -ne 0 ]; then
+              cat preview.out preview.err
+              echo "::error::wrangler preview failed (exit $rc)"
+              exit "$rc"
+            fi
+            # Keep only the JSON document, in case anything else reached stdout.
+            sed -n '/^{/,$p' preview.out > preview.json
+            url=$(jq -r '.preview.urls[0] // empty' preview.json)
+            url=${url%/}
+            commit_url=$(jq -r '.deployment.urls[0] // empty' preview.json)
+            if [ -z "$url" ]; then
+              cat preview.out preview.err
+              echo "::error::wrangler preview returned no URL"
+              exit 1
+            fi
+          }
+          # White background and the default quiet zone, so it scans in GitHub's dark mode too.
+          qr() { npx qrcode -t png -w 300 -e M -d 000000ff -l ffffffff -o "_site/$QR_FILE" "$1" < /dev/null; }
+
+          worker=$(sed -n 's/^ *"name": *"\([^"]*\)".*/\1/p' wrangler.jsonc | head -1)
+          expected="https://pr-$PR-$worker.$WORKERS_SUBDOMAIN.workers.dev"
+          qr "$expected"
+          upload
+          if [ "$url" != "$expected" ]; then
+            echo "::warning::preview URL is $url, expected $expected (update WORKERS_SUBDOMAIN); uploading again with a corrected QR code"
+            qr "$url"
+            upload
+          fi
+
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "commit_url=$commit_url" >> "$GITHUB_OUTPUT"
+          echo "qr_url=$url/$QR_FILE" >> "$GITHUB_OUTPUT"
+          printf 'Preview: %s\nThis commit: %s\n' "$url" "$commit_url" >> "$GITHUB_STEP_SUMMARY"
+
+      # A new comment per deploy, so each one keeps the links of its own commit; the
+      # earlier ones are collapsed as outdated (still readable when expanded).
+      - name: Post the preview links on the PR
+        id: comment
+        if: steps.preview.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          URL: ${{ steps.preview.outputs.url }}
+          COMMIT_URL: ${{ steps.preview.outputs.commit_url }}
+          QR_URL: ${{ steps.preview.outputs.qr_url }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # The body must start with PREVIEW_MARKER: that is how earlier preview comments are found.
+          body=$(cat <<EOF
+          $PREVIEW_MARKER
+          ### ✅ Preview of \`${SHA:0:7}\` is ready
+
+          | Name | Link |
+          |:-:|---|
+          | 😎 Preview | **$URL** |
+          | 🔨 This commit | \`${SHA:0:7}\`: ${COMMIT_URL:-n/a} |
+          | 🔍 Deploy log | [Workflow run $RUN_ID: build, deploy, visual, Lighthouse]($RUN_URL) |
+          | 📱 Preview on mobile | <details><summary>Toggle QR code...</summary><br><img src="$QR_URL" width="150" height="150" alt="QR code of $URL"><br><em>Use your smartphone camera to open the preview.</em></details> |
+          | 🖼️ Visual | running... |
+          | 🔦 Lighthouse | running... |
+
+          Production is unchanged until the PR is merged. The preview is deleted when the PR is closed.
+          EOF
+          )
+          read -r id node < <(gh api "repos/$REPO/issues/$PR/comments" -f body="$body" --jq '"\(.id) \(.node_id)"')
+          if [ -z "$id" ]; then echo "::error::posting the preview comment failed"; exit 1; fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          eval "$COLLAPSE_OLD_PREVIEW_COMMENTS"
+          collapse_old_preview_comments "$node" | sed 's/^/collapsed /'
+
+  visual:
+    needs: deploy
+    if: needs.deploy.outputs.preview_url != '' && needs.deploy.outputs.toolchain_changed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PROD_URL: https://onewheel.klaska.net
+      PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+    outputs:
+      row: ${{ steps.row.outputs.row }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Get the build
+        uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: _site
+
+      # The page list comes from the build, so it maintains itself: every HTML page,
+      # including 404.html (compared with production's 404 page).
+      - name: Build the page list
+        run: |
+          python3 - <<'PY'
+          import json, os, re, sys
+          paths = []
+          skipped = []
+          for root, _, files in os.walk('_site'):
+              for f in files:
+                  if not f.endswith('.html'):
+                      continue
+                  full = os.path.join(root, f)
+                  # A meta-refresh page jumps to an absolute production URL, so both
+                  # sides would screenshot the same page. Nothing to compare.
+                  head = open(full, encoding='utf-8', errors='replace').read(4096)
+                  rel = '/' + os.path.relpath(full, '_site').replace(os.sep, '/')
+                  if re.search(r'http-equiv=["\']?refresh', head, re.I):
+                      skipped.append(rel)
+                      continue
+                  paths.append(re.sub(r'/index\.html$', '/', rel))
+          paths = sorted(set(paths))
+          if not paths:
+              print('::error::No pages found in _site', file=sys.stderr)
+              sys.exit(1)
+          os.makedirs('tests', exist_ok=True)
+          json.dump(paths, open('tests/pages.json', 'w'), indent=1)
+          print(f'{len(paths)} page(s): ' + ', '.join(paths))
+          if skipped:
+              print('skipped (redirects): ' + ', '.join(skipped))
+          PY
+
+      - name: Wait for the preview
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -m 20 "$PREVIEW_URL/" || true)
+            if [ "$code" = "200" ]; then echo "Preview ready after ${i} attempt(s)."; exit 0; fi
+            echo "attempt $i: HTTP $code, waiting..."
+            sleep 10
+          done
+          echo "::error::Preview $PREVIEW_URL did not answer 200 within ~5 minutes."
+          exit 1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Compare preview against production
+        id: compare
+        run: npx playwright test
+
+      # Job summary table, and one self-contained HTML page with preview, production and
+      # diff side by side for every page that differs (tests/visual-report.mjs).
+      - name: Build the visual report
+        id: report
+        if: always() && steps.compare.outcome != 'skipped'
+        env:
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node tests/visual-report.mjs
+          cat visual-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "file=$(jq -r .file visual-report/result.json)" >> "$GITHUB_OUTPUT"
+
+      # Unzipped (archive: false), so GitHub opens the page in the browser.
+      - name: Keep the visual diffs page
+        id: upload
+        if: always() && steps.report.outputs.file != ''
+        uses: actions/upload-artifact@v7
+        with:
+          path: visual-report/${{ steps.report.outputs.file }}
+          archive: false
+          retention-days: 14
+
+      - name: Keep the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Row for the preview comment
+        id: row
+        if: always()
+        env:
+          DIFFS_URL: ${{ steps.upload.outputs.artifact-url }}
+          SUMMARY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#summary-${{ job.check_run_id }}
+        run: |
+          r=visual-report/result.json
+          total=$(jq -r '.total // 0' "$r" 2>/dev/null || echo 0)
+          if [ "$total" = 0 ]; then
+            text="⚠️ no result, see the [job summary]($SUMMARY_URL)"
+          elif [ "$(jq '.failed | length' "$r")" = 0 ]; then
+            text="✅ all $total pages match production"
+          else
+            pages=$(jq -r '[.failed[] | "`\(.path)` \(.percent)"] | join(", ")' "$r")
+            text="❌ $(jq '.failed | length' "$r") of $total differ: $pages"
+            [ -n "$DIFFS_URL" ] && text="$text · [view diffs]($DIFFS_URL)"
+            text="$text · [summary]($SUMMARY_URL)"
+          fi
+          echo "row=| 🖼️ Visual | $text |" >> "$GITHUB_OUTPUT"
+
+  # Lighthouse scores of the preview's home page, for the preview-links comment (job
+  # `comment` writes them). Informational: no thresholds. Mobile
+  # (Lighthouse's default), 3 runs, the run with the median performance score is
+  # reported, because one run's performance score swings a lot on CI runners.
+  # is-crawlable is skipped: previews are noindex on purpose, which would cost SEO
+  # a third of its score.
+  lighthouse:
+    needs: deploy
+    if: needs.deploy.outputs.preview_url != ''
+    runs-on: ubuntu-24.04 # has Google Chrome
+    timeout-minutes: 10
+    env:
+      PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+    outputs:
+      row: ${{ steps.row.outputs.row }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # lighthouse is pinned exactly in package.json.
+      - name: Install Lighthouse
+        run: npm ci --no-audit --no-fund
+
+      - name: Run Lighthouse
+        id: lh
+        env:
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          mkdir -p lighthouse
+          curl -s -o /dev/null "$PREVIEW_URL/" || true # warm up the preview
+          for i in 1 2 3; do
+            npx lighthouse "$PREVIEW_URL/" --quiet \
+              --chrome-flags="--headless=new --no-sandbox" \
+              --only-categories=performance,accessibility,best-practices,seo \
+              --skip-audits=is-crawlable \
+              --output=json --output=html --output-path="lighthouse/run-$i" < /dev/null
+          done
+          median=$(for i in 1 2 3; do
+              echo "$(jq '.categories.performance.score // 0' "lighthouse/run-$i.report.json") $i"
+            done | sort -n | sed -n 2p | cut -d' ' -f2)
+          cp "lighthouse/run-$median.report.html" "lighthouse/lighthouse-report-${SHA:0:7}.html"
+          # 🟢 90-100, 🟠 50-89, 🔴 0-49: Lighthouse's own colour bands.
+          scores=$(jq -r '[.categories[] | .title as $t | ((.score // 0) * 100 | round) as $s
+              | "\(if $s >= 90 then "🟢" elif $s >= 50 then "🟠" else "🔴" end) **\($t)**: \($s)"] | join("<br>")' \
+            "lighthouse/run-$median.report.json")
+          echo "scores=$scores" >> "$GITHUB_OUTPUT"
+          jq -r --arg url "$PREVIEW_URL/" -f .github/lighthouse-summary.jq \
+            "lighthouse/run-$median.report.json" >> "$GITHUB_STEP_SUMMARY"
+
+      # archive: false keeps it a single .html file instead of a zip (upload-artifact v7+).
+      - name: Keep the report
+        id: report
+        uses: actions/upload-artifact@v7
+        with:
+          path: lighthouse/lighthouse-report-*.html
+          archive: false
+          retention-days: 14
+
+      - name: Row for the preview comment
+        id: row
+        if: always()
+        env:
+          SCORES: ${{ steps.lh.outputs.scores }}
+          REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+          SUMMARY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#summary-${{ job.check_run_id }}
+        run: |
+          if [ -n "$SCORES" ]; then
+            text="1 path audited (\`/\`, mobile, median of 3 runs)<br>$SCORES<br>📊 [Metrics and audits below 90 (job summary)]($SUMMARY_URL)"
+            [ -n "$REPORT_URL" ] && text="$text<br>📄 [Full Lighthouse report (opens in the browser)]($REPORT_URL)"
+          else
+            text="⚠️ failed, see the [job summary]($SUMMARY_URL)"
+          fi
+          echo "row=| 🔦 Lighthouse | $text |" >> "$GITHUB_OUTPUT"
+
+  # The only job that edits a preview comment after the deploy job posted it, so the
+  # visual and Lighthouse rows (their jobs run in parallel) never overwrite each other.
+  comment:
+    needs: [deploy, visual, lighthouse]
+    if: always() && needs.deploy.outputs.comment_id != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write # the preview-links comment
+    steps:
+      - name: Fill in the result rows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ needs.deploy.outputs.comment_id }}
+          VISUAL_ROW: ${{ needs.visual.outputs.row }}
+          VISUAL_RESULT: ${{ needs.visual.result }}
+          LIGHTHOUSE_ROW: ${{ needs.lighthouse.outputs.row }}
+          LIGHTHOUSE_RESULT: ${{ needs.lighthouse.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          fallback() { echo "| $1 | ⚠️ $2, see the [workflow run]($RUN_URL) |"; }
+          if [ "$VISUAL_RESULT" = skipped ]; then
+            VISUAL_ROW="| 🖼️ Visual | ➖ not run: only content changed (it runs when the toolchain changes) |"
+          fi
+          [ -n "$VISUAL_ROW" ] || VISUAL_ROW=$(fallback '🖼️ Visual' "$VISUAL_RESULT")
+          [ -n "$LIGHTHOUSE_ROW" ] || LIGHTHOUSE_ROW=$(fallback '🔦 Lighthouse' "$LIGHTHOUSE_RESULT")
+          body=$(gh api "repos/$REPO/issues/comments/$COMMENT_ID" \
+            | jq -r --arg v "$VISUAL_ROW" --arg l "$LIGHTHOUSE_ROW" '.body | split("\n")
+                | map(if startswith("| 🖼️ Visual |") then $v elif startswith("| 🔦 Lighthouse |") then $l else . end)
+                | join("\n")')
+          gh api -X PATCH "repos/$REPO/issues/comments/$COMMENT_ID" -f body="$body" > /dev/null
+
+  cleanup:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write # update the preview-links comment
+    env:
+      HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        if: env.HAS_CF_TOKEN == 'true'
+        uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        if: env.HAS_CF_TOKEN == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install wrangler
+        if: env.HAS_CF_TOKEN == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Delete the PR preview
+        if: env.HAS_CF_TOKEN == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PR: ${{ github.event.number }}
+        run: |
+          if ! npx wrangler preview delete --name "pr-$PR" --skip-confirmation > delete.log 2>&1; then
+            cat delete.log
+            # Nothing to delete (e.g. the PR never got a preview) is fine.
+            if grep -qiE 'not found|does not exist' delete.log; then exit 0; fi
+            exit 1
+          fi
+          cat delete.log
+
+      - name: Collapse the preview comments and say the preview is gone
+        if: env.HAS_CF_TOKEN == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.number }}
+        run: |
+          # Collapse the preview comments (their links are dead now) and say so in a new
+          # one. Nothing to say if the PR never had a preview comment.
+          eval "$COLLAPSE_OLD_PREVIEW_COMMENTS"
+          collapsed=$(collapse_old_preview_comments)
+          if [ -n "$collapsed" ]; then
+            body=$(printf '%s\n🗑️ The preview of this PR was deleted when the PR was closed; the links in the earlier comments no longer work.' "$PREVIEW_MARKER")
+            gh api "repos/$REPO/issues/$PR/comments" -f body="$body" --jq .html_url
+          fi
