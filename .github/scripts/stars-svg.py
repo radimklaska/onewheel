@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """Render a cumulative "GitHub stars over time" chart as a static SVG.
 
-Reads ISO-8601 starred_at timestamps (one per line, UTC) on stdin and writes
-the SVG. One point per complete month: the current, unfinished month is left
+Reads one date per star on stdin (YYYY-MM-DD, or a full ISO-8601 starred_at
+timestamp; only the year and month are used) and writes the SVG. One point per complete month: the current, unfinished month is left
 out, so runs within a month produce the same file and the end label is the
 last complete month's total, not the live count.
 
-Usage:
-  gh api --paginate -H 'Accept: application/vnd.github.star+json' \
-    'repos/OWNER/REPO/stargazers?per_page=100' --jq '.[].starred_at' \
-  | python3 -I stars-svg.py stars.svg
+Usage: see stars-fetch.sh, which feeds it from /stargazers/history.
 
 Python standard library only. GitHub only reports current stargazers, so a
 removed star also disappears from past months.

@@ -35,10 +35,13 @@ jobs:
     outputs:
       changed: ${{ steps.diff.outputs.changed }}
     steps:
+      # The triggering commit, which is master except when dispatched from
+      # another branch. That makes "Run workflow" on a branch a dry run of
+      # the branch's scripts; its commit job can't get the key (the stars
+      # environment only allows master), so it can never push.
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: master
           persist-credentials: false
 
       - name: Generate stars.svg

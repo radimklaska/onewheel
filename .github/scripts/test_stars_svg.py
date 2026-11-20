@@ -40,6 +40,13 @@ class MonthlyCumulative(unittest.TestCase):
             ["2021-01-02T00:00:00Z", "2021-05-02T00:00:00Z"], utc(2021, 6, 2))
         self.assertEqual(totals, [1, 1, 1, 1, 2])
 
+    def test_accepts_date_only_lines(self):
+        # stars-fetch.sh emits YYYY-MM-DD lines from /stargazers/history.
+        self.assertEqual(
+            stars_svg.monthly_cumulative(
+                ["2021-01-28", "2021-03-09", "2021-03-09"], utc(2021, 4, 1)),
+            (idx(2021, 1), [1, 1, 3]))
+
     def test_no_complete_month_raises(self):
         with self.assertRaises(ValueError):
             stars_svg.monthly_cumulative([], utc(2021, 6, 2))
