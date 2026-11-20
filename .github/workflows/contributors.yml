@@ -1,23 +1,43 @@
 name: Contributors
+
+# Regenerates contributors.svg with .github/scripts/contributors-svg.sh
+# (gh, jq, curl and base64 only, no third-party action) and proposes the
+# change as a pull request, because master only accepts pull requests.
+#
+# No schedule trigger on purpose: GitHub disables scheduled workflows after
+# 60 days without repository activity, which is what silently stopped the
+# old version in 2022. The list can only change when something lands on
+# master, and the script reads the commit history at the pushed SHA (not
+# the cached /contributors endpoint), so a push trigger is enough. Use
+# "Run workflow" to pick up changed avatars.
 on:
-  schedule:
-    - cron: '0 1 * * 0' # At 01:00 on Sunday.
   push:
-    branches:
-      - master
+    branches: [master]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Queue rather than cancel, so a run never stops between pushing its
+# branch and opening the PR.
+concurrency:
+  group: contributors
+  cancel-in-progress: false
+
 jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: wow-actions/contributors-list@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          svgPath: contributors.svg
-          userNameHeight: 19
-          itemTemplate: >
-            <g transform="translate({{ x }}, {{ y }})">
-              <a xlink:href="{{{ url }}}" class="contributor-link" target="_blank" rel="nofollow sponsored" title="{{{ name }}}" id="{{{ name }}}">
-                <image width="{{ width }}" height="{{ height }}" xlink:href="{{{ avatar }}}" />
-                <text x="32" y="74" text-anchor="middle" alignment-baseline="middle" font-size="10">{{{ name }}}</text>
-              </a>
-            </g>
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Generate contributors.svg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/contributors-svg.sh "${{ github.repository }}" contributors.svg "${{ github.sha }}"
+
+      - name: Propose the update as a pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/contributors-pr.sh
