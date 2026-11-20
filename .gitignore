@@ -13,3 +13,4 @@ visual-results
 visual-report
 lighthouse
 .wrangler
+__pycache__

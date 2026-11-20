@@ -1,0 +1,105 @@
+name: Stars
+
+# Regenerates stars.svg (GitHub stars over time, one point per complete
+# month) with .github/scripts/stars-svg.py and commits it straight to master.
+#
+# The push uses the STARS_DEPLOY_KEY deploy key, which the master ruleset
+# lets bypass "changes only through a pull request". Unlike a push made with
+# GITHUB_TOKEN, it starts the deploy, so the front page updates too.
+# The key is a secret of the "stars" environment, which only master may use,
+# so workflows on other branches can't read it. Within the run, only the
+# push step loads it.
+#
+# The chart gains a point every month, so the scheduled run commits every
+# month. That commit is repository activity, which keeps GitHub from
+# disabling this and the other scheduled workflows after 60 quiet days.
+# Runs on push and on demand only catch up; mid-month they find no change,
+# and then the job that holds the key doesn't start at all.
+on:
+  schedule:
+    - cron: '17 3 1 * *' # 03:17 UTC on the 1st of every month.
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stars
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Generate stars.svg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/stars-fetch.sh
+
+      - name: Did it change?
+        id: diff
+        run: |
+          git add stars.svg
+          if git diff --cached --quiet; then
+            echo "stars.svg is up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  commit:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    environment: stars
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Generate stars.svg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/stars-fetch.sh
+
+      - name: Commit and push to master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STARS_DEPLOY_KEY: ${{ secrets.STARS_DEPLOY_KEY }}
+        run: |
+          git add stars.svg
+          if git diff --cached --quiet; then
+            echo "stars.svg is up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update stars chart"
+
+          # Trust GitHub's published SSH host keys, fetched over the API.
+          mkdir -p ~/.ssh
+          gh api meta --jq '.ssh_keys[] | "github.com " + .' > ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          trap 'ssh-agent -k >/dev/null' EXIT
+          ssh-add - <<<"$STARS_DEPLOY_KEY"
+          git remote set-url origin "git@github.com:${GITHUB_REPOSITORY}.git"
+
+          # Never force: if master moved meanwhile, rebase onto it and retry.
+          for attempt in 1 2 3; do
+            git push origin HEAD:master && exit 0
+            echo "Push attempt ${attempt} rejected; rebasing onto master."
+            git pull --rebase origin master
+          done
+          exit 1
