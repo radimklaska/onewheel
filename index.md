@@ -33,3 +33,7 @@ I'm a fan of open source and open hardware. The Right to Repair is very relevant
 # Contributors
 
 ![](contributors.svg)
+
+# Stars
+
+![GitHub stars over time](stars.svg)

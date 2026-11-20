@@ -40,3 +40,7 @@ also compared with production. Same setup as https://cfsite.klaska.net.
 # Contributors
 
 ![](contributors.svg)
+
+# Stars
+
+![GitHub stars over time](stars.svg)
