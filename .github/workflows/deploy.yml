@@ -71,6 +71,9 @@ jobs:
       pull-requests: write # the preview-links comment
     env:
       IS_PR: ${{ github.event_name == 'pull_request' }}
+      # Production deploys come only from the default branch: "Run workflow" lets you
+      # pick any branch, and without this a mis-click would publish an unreviewed one.
+      IS_DEFAULT_BRANCH: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
       HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     outputs:
       preview_url: ${{ steps.preview.outputs.url }}
@@ -78,6 +81,14 @@ jobs:
       toolchain_changed: ${{ steps.changes.outputs.toolchain }}
 
     steps:
+      - name: Refuse a manual run from another branch
+        if: env.IS_PR != 'true' && env.IS_DEFAULT_BRANCH != 'true'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          echo "::error::Production deploys only from the default branch ($DEFAULT_BRANCH); this run ($GITHUB_REF_NAME) deployed nothing. Open a pull request for a preview."
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -142,7 +153,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Deploy to production
-        if: env.IS_PR != 'true'
+        if: env.IS_PR != 'true' && env.IS_DEFAULT_BRANCH == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
