@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="220" viewBox="0 0 740 220" role="img" aria-labelledby="t d">
+<title id="t">GitHub stars over time</title>
+<desc id="d">43 stars at the end of Oct 2026, counted monthly since Jan 2021.</desc>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;fill:#898781}.value{font-size:13px;font-weight:600;fill:#0b0b0b}.grid{stroke:#e1e0d9;stroke-width:1}.axis{stroke:#c3c2b7;stroke-width:1}.line{fill:none;stroke:#2a78d6;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.area{fill:#2a78d6;fill-opacity:.1}.dot{fill:#2a78d6}@media (prefers-color-scheme:dark){.value{fill:#f0efec}.grid{stroke:#2c2c2a}.axis{stroke:#383835}.line{stroke:#3987e5}.area{fill:#3987e5}.dot{fill:#3987e5}}</style>
+<line class="grid" x1="40" x2="676" y1="133.3" y2="133.3"/>
+<text x="32" y="137.3" text-anchor="end">20</text>
+<line class="grid" x1="40" x2="676" y1="74.7" y2="74.7"/>
+<text x="32" y="78.7" text-anchor="end">40</text>
+<line class="grid" x1="40" x2="676" y1="16.0" y2="16.0"/>
+<text x="32" y="20.0" text-anchor="end">60</text>
+<line class="axis" x1="40" x2="676" y1="192.0" y2="192.0"/>
+<text x="32" y="196.0" text-anchor="end">0</text>
+<line class="axis" x1="40.0" x2="40.0" y1="192.0" y2="196.0"/>
+<text x="40.0" y="209.0" text-anchor="middle">2021</text>
+<line class="axis" x1="150.6" x2="150.6" y1="192.0" y2="196.0"/>
+<text x="150.6" y="209.0" text-anchor="middle">2022</text>
+<line class="axis" x1="261.2" x2="261.2" y1="192.0" y2="196.0"/>
+<text x="261.2" y="209.0" text-anchor="middle">2023</text>
+<line class="axis" x1="371.8" x2="371.8" y1="192.0" y2="196.0"/>
+<text x="371.8" y="209.0" text-anchor="middle">2024</text>
+<line class="axis" x1="482.4" x2="482.4" y1="192.0" y2="196.0"/>
+<text x="482.4" y="209.0" text-anchor="middle">2025</text>
+<line class="axis" x1="593.0" x2="593.0" y1="192.0" y2="196.0"/>
+<text x="593.0" y="209.0" text-anchor="middle">2026</text>
+<path class="area" d="M40.0,192.0 L40.0,189.1 L49.2,189.1 L58.4,183.2 L67.7,180.3 L76.9,177.3 L86.1,174.4 L95.3,174.4 L104.5,171.5 L113.7,171.5 L123.0,165.6 L132.2,162.7 L141.4,162.7 L150.6,156.8 L159.8,156.8 L169.0,142.1 L178.3,142.1 L187.5,139.2 L196.7,136.3 L205.9,136.3 L215.1,136.3 L224.3,136.3 L233.6,136.3 L242.8,133.3 L252.0,124.5 L261.2,118.7 L270.4,115.7 L279.7,115.7 L288.9,112.8 L298.1,109.9 L307.3,109.9 L316.5,109.9 L325.7,106.9 L335.0,104.0 L344.2,104.0 L353.4,104.0 L362.6,104.0 L371.8,101.1 L381.0,101.1 L390.3,101.1 L399.5,98.1 L408.7,98.1 L417.9,98.1 L427.1,98.1 L436.3,95.2 L445.6,92.3 L454.8,92.3 L464.0,92.3 L473.2,89.3 L482.4,86.4 L491.7,86.4 L500.9,86.4 L510.1,86.4 L519.3,86.4 L528.5,86.4 L537.7,86.4 L547.0,86.4 L556.2,86.4 L565.4,86.4 L574.6,83.5 L583.8,83.5 L593.0,83.5 L602.3,80.5 L611.5,77.6 L620.7,74.7 L629.9,74.7 L639.1,74.7 L648.3,71.7 L657.6,68.8 L666.8,68.8 L676.0,65.9 L676.0,192.0 Z"/>
+<polyline class="line" points="40.0,189.1 49.2,189.1 58.4,183.2 67.7,180.3 76.9,177.3 86.1,174.4 95.3,174.4 104.5,171.5 113.7,171.5 123.0,165.6 132.2,162.7 141.4,162.7 150.6,156.8 159.8,156.8 169.0,142.1 178.3,142.1 187.5,139.2 196.7,136.3 205.9,136.3 215.1,136.3 224.3,136.3 233.6,136.3 242.8,133.3 252.0,124.5 261.2,118.7 270.4,115.7 279.7,115.7 288.9,112.8 298.1,109.9 307.3,109.9 316.5,109.9 325.7,106.9 335.0,104.0 344.2,104.0 353.4,104.0 362.6,104.0 371.8,101.1 381.0,101.1 390.3,101.1 399.5,98.1 408.7,98.1 417.9,98.1 427.1,98.1 436.3,95.2 445.6,92.3 454.8,92.3 464.0,92.3 473.2,89.3 482.4,86.4 491.7,86.4 500.9,86.4 510.1,86.4 519.3,86.4 528.5,86.4 537.7,86.4 547.0,86.4 556.2,86.4 565.4,86.4 574.6,83.5 583.8,83.5 593.0,83.5 602.3,80.5 611.5,77.6 620.7,74.7 629.9,74.7 639.1,74.7 648.3,71.7 657.6,68.8 666.8,68.8 676.0,65.9"/>
+<circle class="dot" cx="676.0" cy="65.9" r="4"/>
+<text class="value" x="685.0" y="70.4">43</text>
+</svg>
